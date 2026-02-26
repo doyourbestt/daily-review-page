@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首次设置 - 元气复盘局</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #FF6B35;
+        }
+
+        .step h2 {
+            font-size: 24px;
+            color: #FF6B35;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: #FF6B35;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step p {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .step a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .step a:hover {
+            transform: translateY(-2px);
+            background: #5568d3;
+        }
+
+        .sql-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: #F7931E;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .config-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .form-group small {
+            display: block;
+            color: #999;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .skip-btn {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+
+        .skip-btn:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .step {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 首次设置向导</h1>
+            <p>配置 Supabase 后端，解锁完整的社交功能</p>
+        </div>
+
+        <div class="content">
+            <div class="info">
+                <strong>💡 提示：</strong>完成设置后，你将拥有完整的用户登录、点赞、评论、收藏功能！所有数据在云端同步，多设备随时访问。
+            </div>
+
+            <!-- Step 1 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">1</span>
+                    创建 Supabase 账号
+                </h2>
+                <p>Supabase 是一个免费的开源后端服务，提供数据库、认证、存储等功能。</p>
+                <a href="https://supabase.com" target="_blank">前往 Supabase 官网 →</a>
+                <p style="margin-top: 15px; font-size: 14px; color: #999;">
+                    <strong>注意：</strong>使用 GitHub 或 Google 账号登录更方便
+                </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">2</span>
+                    创建新项目
+                </h2>
+                <p>在 Supabase 控制台中：</p>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li>点击 "New Project"（新建项目）</li>
+                    <li>输入项目名称，例如：<code>daily-review</code></li>
+                    <li>设置数据库密码（记住这个密码！）</li>
+                    <li>选择离你最近的区域（推荐：Singapore）</li>
+                    <li>点击 "Create new project"</li>
+                </ol>
+                <p style="margin-top: 10px; color: #d35400;">
+                    <strong>⏱️ 等待 1-2 分钟</strong>，项目初始化完成后继续下一步
+                </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">3</span>
+                    运行数据库迁移
+                </h2>
+                <p>在项目创建完成后：</p>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li>在左侧菜单找到 "SQL Editor"</li>
+                    <li>点击 "New Query"（新建查询）</li>
+                    <li>复制下面的 SQL 代码粘贴进去</li>
+                    <li>点击 "Run"（运行）按钮</li>
+                </ol>
+
+                <div class="sql-box" id="sqlCode">-- 创建用户资料表
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT UNIQUE,
+  avatar_url TEXT,
+  bio TEXT,
+  is_admin BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 创建复盘内容表
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  date DATE UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  intro JSONB,
+  people JSONB NOT NULL,
+  summary TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  author_id UUID REFERENCES auth.users(id)
+);
+
+-- 创建点赞表
+CREATE TABLE likes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  review_date DATE NOT NULL,
+  person_name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, review_date, person_name)
+);
+
+-- 创建评论表
+CREATE TABLE comments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  review_date DATE NOT NULL,
+  person_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  username TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 创建收藏表
+CREATE TABLE favorites (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  review_date DATE NOT NULL,
+  person_name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, review_date, person_name)
+);
+
+-- 启用行级安全策略
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+
+-- profiles 表策略
+CREATE POLICY "Public profiles are viewable by everyone"
+  ON profiles FOR SELECT USING (true);
+
+CREATE POLICY "Users can update own profile"
+  ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- reviews 表策略
+CREATE POLICY "Reviews are viewable by everyone"
+  ON reviews FOR SELECT USING (true);
+
+CREATE POLICY "Only admins can insert reviews"
+  ON reviews FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+  );
+
+CREATE POLICY "Only admins can update reviews"
+  ON reviews FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+  );
+
+CREATE POLICY "Only admins can delete reviews"
+  ON reviews FOR DELETE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+  );
+
+-- likes 表策略
+CREATE POLICY "Likes are viewable by everyone"
+  ON likes FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own likes"
+  ON likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own likes"
+  ON likes FOR DELETE USING (auth.uid() = user_id);
+
+-- comments 表策略
+CREATE POLICY "Comments are viewable by everyone"
+  ON comments FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can insert comments"
+  ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own comments"
+  ON comments FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own comments"
+  ON comments FOR DELETE USING (auth.uid() = user_id);
+
+-- favorites 表策略
+CREATE POLICY "Favorites are viewable by owner"
+  ON favorites FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own favorites"
+  ON favorites FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own favorites"
+  ON favorites FOR DELETE USING (auth.uid() = user_id);
+
+-- 创建用户注册触发器（自动创建 profile）
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, avatar_url)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', '')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+                </div>
+
+                <button class="btn" onclick="copySql()">📋 复制 SQL 代码</button>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">4</span>
+                    填写配置信息
+                </h2>
+                <p>在 Supabase 项目页面：</p>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li>点击左侧的齿轮图标 "Settings"（设置）</li>
+                    <li>选择 "API"</li>
+                    <li>找到 "Project URL" 和 "anon public" key</li>
+                    <li>复制到下面的表单中</li>
+                </ol>
+
+                <div class="config-form">
+                    <div class="form-group">
+                        <label>Supabase URL</label>
+                        <input type="text" id="supabaseUrl" placeholder="https://xxxxx.supabase.co">
+                        <small>在 Settings → API 中找到 "Project URL"</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Anon Key</label>
+                        <input type="text" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                        <small>在 Settings → API 中找到 "anon public" key（很长的字符串）</small>
+                    </div>
+
+                    <button class="btn" onclick="testConnection()">🔌 测试连接</button>
+                    <button class="btn" onclick="generateConfig()">💾 生成配置文件</button>
+                    <button class="btn skip-btn" onclick="skipSetup()">⏭️ 跳过（稍后配置）</button>
+
+                    <div class="success" id="successMsg">
+                        <strong>✅ 连接成功！</strong>配置文件已生成，请下载并放到项目的 js 文件夹中。
+                    </div>
+
+                    <div class="error" id="errorMsg">
+                        <strong>❌ 连接失败</strong>
+                        <p id="errorText"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">5</span>
+                    完成设置
+                </h2>
+                <p>配置文件生成后：</p>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li>将下载的 <code>config.js</code> 文件放到项目的 <code>js/</code> 文件夹中</li>
+                    <li>打开 <code>index.html</code> 开始使用</li>
+                    <li>首次打开会提示注册账号</li>
+                    <li>注册后即可使用所有功能！</li>
+                </ol>
+
+                <div class="info">
+                    <strong>🎉 设置完成！</strong>现在你可以：
+                    <ul style="margin: 10px 0 0 20px; line-height: 2;">
+                        <li>✅ 用户注册和登录</li>
+                        <li>✅ 给复盘内容点赞</li>
+                        <li>✅ 发表评论互动</li>
+                        <li>✅ 收藏喜欢的内容</li>
+                        <li>✅ 多设备数据同步</li>
+                    </ul>
+                </div>
+
+                <a href="index.html" class="btn" style="display: inline-block; margin-top: 15px;">🚀 开始使用</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copySql() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                alert('✅ SQL 代码已复制到剪贴板！\n\n请前往 Supabase SQL Editor 粘贴并运行。');
+            }).catch(() => {
+                alert('❌ 复制失败，请手动选择并复制 SQL 代码');
+            });
+        }
+
+        async function testConnection() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                showError('请填写完整的 URL 和 Key');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${url}/rest/v1/`, {
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`
+                    }
+                });
+
+                if (response.ok || response.status === 404) {
+                    showSuccess('✅ 连接成功！Supabase 配置正确。');
+                } else {
+                    showError(`连接失败：HTTP ${response.status}`);
+                }
+            } catch (error) {
+                showError(`连接失败：${error.message}`);
+            }
+        }
+
+        function generateConfig() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                showError('请先填写完整的配置信息');
+                return;
+            }
+
+            const configContent = `// Supabase 配置文件
+// 由设置向导自动生成于 ${new Date().toLocaleString()}
+
+const SUPABASE_CONFIG = {
+  url: '${url}',
+  anonKey: '${key}'
+};
+
+// 导出配置（如果使用模块化）
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SUPABASE_CONFIG;
+}
+`;
+
+            // 创建下载链接
+            const blob = new Blob([configContent], { type: 'application/javascript' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'config.js';
+            a.click();
+            URL.revokeObjectURL(downloadUrl);
+
+            showSuccess('✅ 配置文件已生成并下载！\n\n请将 config.js 文件放到项目的 js/ 文件夹中。');
+        }
+
+        function skipSetup() {
+            if (confirm('确定要跳过设置吗？\n\n跳过后将使用本地模式，点赞和评论数据只保存在本地浏览器中，无法多设备同步。')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = message;
+            successMsg.classList.add('show');
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            document.getElementById('errorText').textContent = message;
+            errorMsg.classList.add('show');
+            document.getElementById('successMsg').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

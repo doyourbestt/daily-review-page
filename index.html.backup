@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>元气复盘局 | 每一天都在发光发热</title>
+    <meta name="description" content="Daily team review and reflection sharing platform">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="./data/reviews.json" as="fetch" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            /* Colors */
+            --color-primary: #FF6B35;
+            --color-secondary: #F7931E;
+            --color-accent: #FFD23F;
+            --color-warm: #FFA07A;
+            --color-bg-dark: #1A1A1A;
+            --color-bg-light: #FAFAFA;
+            --color-text-dark: #2C2C2C;
+            --color-text-light: #E8E8E8;
+            --color-grey: #6B6B6B;
+            --color-border: #E0E0E0;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 48px;
+            --space-2xl: 64px;
+            --space-3xl: 96px;
+            --space-4xl: 120px;
+            
+            /* Typography */
+            --font-primary: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            
+            /* Safe Area */
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-left: env(safe-area-inset-left, 0px);
+            --safe-area-right: env(safe-area-inset-right, 0px);
+        }
+
+        body {
+            font-family: var(--font-primary);
+            color: var(--color-text-dark);
+            background: var(--color-bg-light);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+
+        .hero-video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .hero-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .hero-video.loaded {
+            opacity: 1;
+        }
+
+        .hero-fallback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(26,26,26,0.3) 0%, rgba(26,26,26,0.6) 100%);
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            color: white;
+            padding: 0 var(--space-md);
+            padding-top: calc(var(--safe-area-top) + var(--space-md));
+            padding-bottom: calc(var(--safe-area-bottom) + var(--space-md));
+            max-width: 1200px;
+        }
+
+        .hero-title {
+            font-size: clamp(48px, 8vw, 96px);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            opacity: 0;
+            transform: scale(1.05);
+            will-change: transform, opacity;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(20px, 3vw, 32px);
+            font-weight: 400;
+            opacity: 0;
+            transform: translateY(20px);
+            margin-bottom: var(--space-2xl);
+            will-change: transform, opacity;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: calc(var(--safe-area-bottom) + var(--space-2xl));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            opacity: 0;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Date Navigation */
+        .date-nav {
+            position: fixed;
+            bottom: calc(var(--safe-area-bottom) + var(--space-md));
+            left: var(--space-md);
+            z-index: 9998;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .date-nav-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            min-width: 48px;
+            min-height: 48px;
+        }
+
+        .date-nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .date-picker {
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            width: 280px;
+            max-height: 400px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transform: translateY(10px) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .date-picker.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .date-picker-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+            padding: var(--space-md);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .date-list {
+            max-height: 320px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .date-item {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            touch-action: manipulation;
+            min-height: 48px;
+        }
+
+        .date-item:active {
+            background: #f5f5f5;
+        }
+
+        .date-item.current {
+            background: #fff5f0;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .date-item-date {
+            font-size: 16px;
+        }
+
+        .date-item-badge {
+            background: var(--color-primary);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+            padding-left: calc(var(--safe-area-left) + var(--space-md));
+            padding-right: calc(var(--safe-area-right) + var(--space-md));
+        }
+
+        /* Section */
+        .section {
+            padding: var(--space-3xl) 0;
+            opacity: 0;
+            transform: translateY(50px);
+            contain: layout style paint;
+        }
+
+        .section-title {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 700;
+            margin-bottom: var(--space-xl);
+            text-align: center;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Introduction */
+        .intro {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            font-size: clamp(16px, 2vw, 20px);
+            line-height: 1.8;
+            color: #4A4A4A !important;
+        }
+
+        .intro h2 {
+            font-size: clamp(28px, 4vw, 40px);
+            color: #2C2C2C !important;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
+        }
+
+        @media (max-width: 480px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Person Card */
+        .person-card {
+            background: white;
+            border-radius: 16px;
+            padding: var(--space-lg);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+        }
+
+        .person-card:active {
+            transform: translateY(-4px);
+        }
+
+        .person-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .person-emoji {
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .person-info {
+            flex: 1;
+        }
+
+        .person-info h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+        }
+
+        .person-role {
+            font-size: 14px;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* Interaction Buttons */
+        .card-actions {
+            position: absolute;
+            top: var(--space-md);
+            right: var(--space-md);
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn.liked {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .action-btn.favorited {
+            background: var(--color-accent);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .person-content {
+            color: #2C2C2C !important;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: var(--space-md);
+        }
+
+        .person-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .person-content li {
+            padding-left: var(--space-md);
+            margin-bottom: var(--space-sm);
+            position: relative;
+            color: #2C2C2C !important;
+        }
+
+        .person-content li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: var(--space-md);
+            font-size: 14px;
+            color: var(--color-grey);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .comment-toggle {
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 8px;
+            transition: background 0.2s;
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+
+        .comment-toggle:active {
+            background: #f5f5f5;
+        }
+
+        /* Comment Section */
+        .comment-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: var(--space-md);
+        }
+
+        .comment-section.expanded {
+            max-height: 800px;
+        }
+
+        .comment-list {
+            margin-bottom: var(--space-md);
+        }
+
+        .comment-item {
+            padding: var(--space-sm);
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-bottom: var(--space-xs);
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: var(--color-grey);
+        }
+
+        .comment-form {
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+min-height: 44px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .comment-submit {
+            padding: var(--space-sm) var(--space-md);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            touch-action: manipulation;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .comment-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* Summary Section */
+        .summary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+            padding: var(--space-3xl) 0;
+            padding-bottom: calc(var(--space-3xl) + var(--safe-area-bottom));
+            text-align: center;
+        }
+
+        .summary-content {
+            max-width: 900px;
+            margin: 0 auto;
+            font-size: clamp(16px, 2vw, 20px);
+            line-height: 1.8;
+        }
+
+        .summary h2 {
+            font-size: clamp(32px, 5vw, 48px);
+            margin-bottom: var(--space-xl);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--color-bg-dark);
+            color: var(--color-text-light);
+            padding: var(--space-2xl) 0;
+            padding-bottom: calc(var(--space-2xl) + var(--safe-area-bottom));
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .footer-date {
+            font-size: 14px;
+            color: var(--color-grey);
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .footer-credit {
+            font-size: 16px;
+        }
+
+        .footer-credit a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-credit a:active {
+            color: var(--color-secondary);
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: calc(100px + var(--safe-area-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Landscape Mode */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .hero {
+                min-height: 100dvh;
+            }
+            
+            .hero-title {
+                font-size: clamp(32px, 6vw, 64px);
+            }
+            
+            .hero-subtitle {
+                font-size: clamp(16px, 2.5vw, 24px);
+            }
+        }
+
+        /* Prevent zoom on input focus (iOS) */
+        @media screen and (max-width: 768px) {
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Date Navigation -->
+    <div class="date-nav" id="dateNav">
+        <button class="date-nav-btn" id="dateNavBtn" aria-label="日期导航">
+            📅
+        </button>
+        <div class="date-picker" id="datePicker">
+            <div class="date-picker-header">选择日期</div>
+            <div class="date-list" id="dateList"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-video-container">
+            <img src="./images/hero_fallback.jpg" alt="Hero Background" class="hero-fallback" id="heroFallback">
+            <video class="hero-video" id="heroVideo" muted loop playsinline preload="none">
+                <source src="./videos/hero_compressed.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title" id="heroTitle">元气复盘局</h1>
+            <p class="hero-subtitle" id="heroSubtitle">每一天都在发光发热 ✨</p>
+        </div>
+        <div class="scroll-indicator">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M19 12l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section class="section" id="introSection">
+        <div class="container">
+            <div class="intro" id="introContent">
+                <!-- Dynamic content loaded from JSON -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section" id="teamSection">
+        <div class="container">
+            <h2 class="section-title">🧩 每位伙伴的元气干货速递</h2>
+            <div class="team-grid" id="teamGrid">
+                <!-- Dynamic content loaded from JSON -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Summary Section -->
+    <section class="summary" id="summarySection">
+        <div class="container">
+            <div class="summary-content">
+                <h2>✨ 元气总结</h2>
+                <p id="summaryText"><!-- Dynamic content loaded from JSON --></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-date" id="footerDate">2026-02-11</div>
+                <div class="footer-credit">
+                    Crafted with ❤️ by <a href="#">Matrix Agent</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GSAP Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        // ============== Core App ==============
+        (function() {
+            'use strict';
+
+            // Performance Detection
+            const isLowEndDevice = (() => {
+                const memory = navigator.deviceMemory || 4; // GB
+                const cores = navigator.hardwareConcurrency || 4;
+                const connection = navigator.connection;
+                const isSlow = connection && (connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g');
+                
+                return memory < 2 || cores < 2 || isSlow;
+            })();
+
+            // WeChat Browser Detection
+            const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+
+            // State Management
+            let currentDate = '2026-02-11';
+            let reviewsData = {};
+            let interactionsData = {
+                likes: JSON.parse(localStorage.getItem('review_likes') || '{}'),
+                comments: JSON.parse(localStorage.getItem('review_comments') || '{}'),
+                favorites: JSON.parse(localStorage.getItem('review_favorites') || '[]')
+            };
+
+            // DOM Elements
+            const elements = {
+                loading: document.getElementById('loading'),
+                heroVideo: document.getElementById('heroVideo'),
+                heroFallback: document.getElementById('heroFallback'),
+                heroTitle: document.getElementById('heroTitle'),
+                heroSubtitle: document.getElementById('heroSubtitle'),
+                dateNav: document.getElementById('dateNav'),
+                dateNavBtn: document.getElementById('dateNavBtn'),
+                datePicker: document.getElementById('datePicker'),
+                dateList: document.getElementById('dateList'),
+                introContent: document.getElementById('introContent'),
+                teamGrid: document.getElementById('teamGrid'),
+                summaryText: document.getElementById('summaryText'),
+                footerDate: document.getElementById('footerDate'),
+                toast: document.getElementById('toast')
+            };
+
+            // Initialize App
+            async function init() {
+                try {
+                    // Load reviews data
+                    const response = await fetch('./data/reviews.json');
+                    reviewsData = await response.json();
+                    
+                    // Get current date or default to latest
+                    const dates = Object.keys(reviewsData).sort().reverse();
+                    currentDate = dates[0];
+                    
+                    // Render initial content
+                    renderDateList();
+                    renderContent(currentDate);
+                    
+                    // Initialize video based on device capability
+                    if (isLowEndDevice) {
+                        console.log('Low-end device detected, skipping video');
+                        elements.heroVideo.style.display = 'none';
+                    } else {
+                        initVideo();
+                    }
+                    
+                    // Hide loading screen
+                    setTimeout(() => {
+                        elements.loading.style.opacity = '0';
+                        setTimeout(() => {
+                            elements.loading.style.display = 'none';
+                        }, 500);
+                        
+                        // Initialize animations
+                        initAnimations();
+                    }, 800);
+                    
+                } catch (error) {
+                    console.error('Failed to initialize app:', error);
+                    showToast('加载失败，请刷新页面');
+                }
+            }
+
+            // Initialize Video
+            function initVideo() {
+                const video = elements.heroVideo;
+                
+                // WeChat specific handling
+                if (isWeChat) {
+                    document.addEventListener('WeixinJSBridgeReady', () => {
+                        video.play();
+                    }, false);
+                }
+                
+                // Lazy load video
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            video.load();
+                            observer.unobserve(video);
+                        }
+                    });
+                });
+                
+                observer.observe(video);
+                
+                // Handle video load
+                video.addEventListener('loadeddata', () => {
+                    video.play().then(() => {
+                        video.classList.add('loaded');
+                    }).catch(err => {
+                        console.warn('Video autoplay failed:', err);
+                        video.style.display = 'none';
+                    });
+                });
+                
+                // Handle video error
+                video.addEventListener('error', () => {
+                    console.warn('Video failed to load, using fallback');
+                    video.style.display = 'none';
+                });
+            }
+
+            // Render Date List
+            function renderDateList() {
+                const dates = Object.keys(reviewsData).sort().reverse();
+                
+                elements.dateList.innerHTML = dates.map(date => {
+                    const isCurrent = date === currentDate;
+                    return `
+                        <div class="date-item ${isCurrent ? 'current' : ''}" data-date="${date}">
+                            <span class="date-item-date">${date}</span>
+                            ${isCurrent ? '<span class="date-item-badge">当前</span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add click handlers
+                elements.dateList.querySelectorAll('.date-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const date = item.dataset.date;
+                        if (date !== currentDate) {
+                            switchDate(date);
+                        }
+                        elements.datePicker.classList.remove('active');
+                    });
+                });
+            }
+
+            // Switch Date
+            function switchDate(newDate) {
+                if (!reviewsData[newDate]) {
+                    showToast('该日期暂无数据');
+                    return;
+                }
+                
+                // Fade out current content
+                const sections = document.querySelectorAll('.section, .summary');
+                gsap.to(sections, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    stagger: 0.05,
+                    onComplete: () => {
+                        currentDate = newDate;
+                        renderContent(newDate);
+                        renderDateList();
+                        
+                        // Fade in new content
+                        gsap.to(sections, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.6,
+                            stagger: 0.05,
+                            ease: 'power2.out'
+                        });
+                        
+                        // Scroll to top
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            }
+
+            // Render Content
+            function renderContent(date) {
+                const data = reviewsData[date];
+                
+                if (!data) {
+                    console.error('No data for date:', date);
+                    return;
+                }
+                
+                // Update hero
+                elements.heroTitle.textContent = data.title;
+                elements.heroSubtitle.textContent = data.subtitle;
+                
+                // Update intro
+                elements.introContent.innerHTML = `
+                    <h2>${data.intro.heading}</h2>
+                    <p>${data.intro.content}</p>
+                `;
+                
+                // Update team grid
+                elements.teamGrid.innerHTML = data.people.map(person => {
+                    const personKey = `${date}:${person.name}`;
+                    const isLiked = interactionsData.likes[personKey] || false;
+                    const isFavorited = interactionsData.favorites.includes(personKey);
+                    const comments = interactionsData.comments[personKey] || [];
+                    const likeCount = Object.keys(interactionsData.likes).filter(k => k === personKey && interactionsData.likes[k]).length;
+                    
+                    return `
+                        <div class="person-card" data-person="${personKey}">
+                            <div class="card-actions">
+                                <button class="action-btn favorite-btn ${isFavorited ? 'favorited' : ''}" data-person="${personKey}" aria-label="收藏">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                </button>
+                                <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" data-person="${personKey}" aria-label="点赞">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="person-header">
+                                <div class="person-emoji">${person.emoji}</div>
+                                <div class="person-info">
+                                    <h3>${person.name}</h3>
+                                    <div class="person-role">${person.role}</div>
+                                </div>
+                            </div>
+                            <div class="person-content">
+                                <ul>
+                                    ${person.content.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="card-footer">
+                                <div class="card-stats">
+                                    <span class="stat-item">❤️ <span class="like-count">${isLiked ? 1 : 0}</span></span>
+                                    <span class="stat-item">💬 <span class="comment-count">${comments.length}</span></span>
+                                </div>
+                                <button class="comment-toggle" data-person="${personKey}">
+                                    ${comments.length > 0 ? `查看评论 (${comments.length})` : '添加评论'}
+                                </button>
+                            </div>
+                            <div class="comment-section" data-person="${personKey}">
+                                <div class="comment-list">
+                                    ${comments.map(c => `
+                                        <div class="comment-item">
+                                            <div class="comment-author">${c.name}</div>
+                                            <div class="comment-text">${c.text}</div>
+                                            <div class="comment-time">${c.time}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="comment-form">
+                                    <textarea class="comment-input" placeholder="写下你的想法..." data-person="${personKey}"></textarea>
+                                    <button class="comment-submit" data-person="${personKey}">发送</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Update summary
+                elements.summaryText.textContent = data.summary;
+                
+                // Update footer
+                elements.footerDate.textContent = date;
+                
+                // Attach event listeners
+                attachInteractionListeners();
+            }
+
+            // Attach Interaction Listeners
+            function attachInteractionListeners() {
+                // Like buttons
+                document.querySelectorAll('.like-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const personKey = this.dataset.person;
+                        toggleLike(personKey, this);
+                    });
+                });
+                
+                // Favorite buttons
+                document.querySelectorAll('.favorite-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const personKey = this.dataset.person;
+                        toggleFavorite(personKey, this);
+                    });
+                });
+                
+                // Comment toggles
+                document.querySelectorAll('.comment-toggle').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const personKey = this.dataset.person;
+                        const section = document.querySelector(`.comment-section[data-person="${personKey}"]`);
+                        section.classList.toggle('expanded');
+                    });
+                });
+                
+                // Comment submit
+                document.querySelectorAll('.comment-submit').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const personKey = this.dataset.person;
+                        const input = document.querySelector(`.comment-input[data-person="${personKey}"]`);
+                        addComment(personKey, input.value);
+                        input.value = '';
+                    });
+                });
+            }
+
+            // Toggle Like
+            function toggleLike(personKey, btn) {
+                const isLiked = interactionsData.likes[personKey] || false;
+                interactionsData.likes[personKey] = !isLiked;
+                
+                // Update UI
+                btn.classList.toggle('liked');
+                const card = btn.closest('.person-card');
+                const likeCount = card.querySelector('.like-count');
+                likeCount.textContent = interactionsData.likes[personKey] ? 1 : 0;
+                
+                // Animate
+                gsap.fromTo(btn, 
+                    { scale: 1 },
+                    { scale: 1.3, duration: 0.2, yoyo: true, repeat: 1 }
+                );
+                
+                // Save to localStorage
+                localStorage.setItem('review_likes', JSON.stringify(interactionsData.likes));
+                
+                showToast(interactionsData.likes[personKey] ? '点赞成功 ❤️' : '取消点赞');
+            }
+
+            // Toggle Favorite
+            function toggleFavorite(personKey, btn) {
+                const index = interactionsData.favorites.indexOf(personKey);
+                
+                if (index === -1) {
+                    interactionsData.favorites.push(personKey);
+                    btn.classList.add('favorited');
+                    showToast('已收藏 ⭐');
+                } else {
+                    interactionsData.favorites.splice(index, 1);
+                    btn.classList.remove('favorited');
+                    showToast('取消收藏');
+                }
+                
+                // Animate
+                gsap.fromTo(btn, 
+                    { scale: 1 },
+                    { scale: 1.3, duration: 0.2, yoyo: true, repeat: 1 }
+                );
+                
+                // Save to localStorage
+                localStorage.setItem('review_favorites', JSON.stringify(interactionsData.favorites));
+            }
+
+            // Add Comment
+            function addComment(personKey, text) {
+                if (!text.trim()) {
+                    showToast('请输入评论内容');
+                    return;
+                }
+                
+                if (!interactionsData.comments[personKey]) {
+                    interactionsData.comments[personKey] = [];
+                }
+                
+                const comment = {
+                    name: '匿名',
+                    text: text.trim(),
+                    time: new Date().toLocaleString('zh-CN', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit',
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    })
+                };
+                
+                interactionsData.comments[personKey].push(comment);
+                
+                // Save to localStorage
+                localStorage.setItem('review_comments', JSON.stringify(interactionsData.comments));
+                
+                // Re-render content to update UI
+                renderContent(currentDate);
+                
+                showToast('评论成功 💬');
+            }
+
+            // Initialize Animations
+            function initAnimations() {
+                if (isLowEndDevice) {
+                    // Simple fade-in for low-end devices
+                    gsap.set('.hero-title, .hero-subtitle, .scroll-indicator, .date-nav', { opacity: 1 });
+                    gsap.set('.section, .person-card', { opacity: 1, y: 0 });
+                    return;
+                }
+                
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // Hero animations
+                const heroTimeline = gsap.timeline();
+                heroTimeline
+                    .to('.hero-title', {
+                        opacity: 1,
+                        scale: 1,
+                        duration: 1.2,
+                        ease: 'power3.out'
+                    })
+                    .to('.hero-subtitle', {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.8,
+                        ease: 'power2.out'
+                    }, '-=0.6')
+                    .to('.scroll-indicator', {
+                        opacity: 0.7,
+                        duration: 0.6,
+                        ease: 'power2.out'
+                    }, '-=0.4')
+                    .to('.date-nav', {
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.6,
+                        ease: 'power2.out'
+                    }, '-=0.4');
+
+                // Section fade-in animations
+                gsap.utils.toArray('.section').forEach((section) => {
+                    gsap.to(section, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 1,
+                        ease: 'power2.out',
+                        scrollTrigger: {
+                            trigger: section,
+                            start: 'top 80%',
+                            end: 'top 20%',
+                            toggleActions: 'play none none none'
+                        }
+                    });
+                });
+
+                // Person cards stagger animation
+                gsap.utils.toArray('.person-card').forEach((card, index) => {
+                    gsap.to(card, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.8,
+                        delay: index * 0.05,
+                        ease: 'power2.out',
+                        scrollTrigger: {
+                            trigger: card,
+                            start: 'top 85%',
+                            toggleActions: 'play none none none'
+                        }
+                    });
+                });
+
+                // Parallax effect for hero video (only on capable devices)
+                if (!isLowEndDevice) {
+                    gsap.to('.hero-video, .hero-fallback', {
+                        y: '20%',
+                        ease: 'none',
+                        scrollTrigger: {
+                            trigger: '.hero',
+                            start: 'top top',
+                            end: 'bottom top',
+                            scrub: true
+                        }
+                    });
+                }
+
+                // Hide scroll indicator on scroll
+                ScrollTrigger.create({
+                    trigger: '.hero',
+                    start: 'top top',
+                    end: 'bottom top',
+                    onUpdate: (self) => {
+                        gsap.to('.scroll-indicator', {
+                            opacity: 0.7 * (1 - self.progress),
+                            duration: 0.3
+                        });
+                    }
+                });
+            }
+
+            // Date Navigation
+            elements.dateNavBtn.addEventListener('click', () => {
+                elements.datePicker.classList.toggle('active');
+            });
+
+            // Close date picker when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!elements.dateNav.contains(e.target)) {
+                    elements.datePicker.classList.remove('active');
+                }
+            });
+
+            // Toast notification
+            function showToast(message) {
+                elements.toast.textContent = message;
+                elements.toast.classList.add('show');
+                setTimeout(() => {
+                    elements.toast.classList.remove('show');
+                }, 2000);
+            }
+
+            // Initialize on page load
+            window.addEventListener('load', init);
+        })();
+    </script>
+</body>
+</html>

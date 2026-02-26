@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复盘内容解析器 | 元气复盘局</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #FF6B35;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: #FF6B35;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .input-area {
+            background: #f5f5f5;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 300px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .input-area:focus {
+            outline: none;
+            border-color: #FF6B35;
+            background: white;
+        }
+
+        .date-input {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 200px;
+            transition: border-color 0.3s;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .output-area {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0fff4;
+            border: 2px solid #86efac;
+            border-radius: 12px;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border: 2px solid #4dabf7;
+            color: #1971c2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .file-upload {
+            display: none;
+        }
+
+        .file-upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .file-upload-label:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .preview-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .preview-item h3 {
+            color: #FF6B35;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-item ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .preview-item li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 复盘内容解析器</h1>
+        <p class="subtitle">超简单！粘贴 Markdown 内容，一键生成 JSON 数据</p>
+
+        <div class="warning">
+            ⚠️ <strong>使用前提示：</strong>打开这个页面前，请确保 <code>data/reviews.json</code> 文件存在！如果是第一次使用，工具会帮你创建。
+        </div>
+
+        <!-- Step 1: 设置日期 -->
+        <div class="section">
+            <div class="section-title">
+                <span class="step-number">1</span>
+                设置日期
+            </div>
+            <input type="date" class="date-input" id="reviewDate" value="">
+        </div>
+
+        <!-- Step 2: 粘贴内容 -->
+        <div class="section">
+            <div class="section-title">
+                <span class="step-number">2</span>
+                粘贴复盘 Markdown 内容
+            </div>
+            <textarea class="input-area" id="markdownInput" placeholder="把 new_review.md 的内容复制粘贴到这里...
+
+示例格式：
+# 🌟 元气复盘局｜标题✨
+开场白内容～
+
+## 🧩 每位伙伴的元气干货速递
+### 喵喵🐱 「宝藏分享官」
+- 分享内容1
+- 分享内容2
+
+## ✨ 元气总结
+总结内容～"></textarea>
+            
+            <div class="info">
+                💡 <strong>提示：</strong>也可以从文件直接加载 👇
+                <br>
+                <label for="fileUpload" class="file-upload-label" style="margin-top: 10px;">
+                    📁 选择 new_review.md 文件
+                </label>
+                <input type="file" id="fileUpload" class="file-upload" accept=".md,.txt">
+            </div>
+        </div>
+
+        <!-- Step 3: 解析 -->
+        <div class="section">
+            <div class="section-title">
+                <span class="step-number">3</span>
+                一键解析
+            </div>
+            <button class="btn" id="parseBtn" onclick="parseMarkdown()">
+                ✨ 解析并生成 JSON
+            </button>
+        </div>
+
+        <!-- 预览结果 -->
+        <div class="result-section" id="resultSection">
+            <h3 style="color: #22c55e; margin-bottom: 15px;">✅ 解析成功！</h3>
+            
+            <div class="section-title" style="margin-bottom: 10px;">
+                📝 内容预览
+            </div>
+            <div id="previewContainer"></div>
+
+            <div class="section-title" style="margin-top: 25px; margin-bottom: 10px;">
+                📦 生成的 JSON 数据
+            </div>
+            <div class="output-area" id="jsonOutput"></div>
+
+            <div class="button-group">
+                <button class="btn" onclick="downloadJSON()">
+                    💾 下载 JSON 文件
+                </button>
+                <button class="btn btn-secondary" onclick="copyToClipboard()">
+                    📋 复制到剪贴板
+                </button>
+            </div>
+
+            <div class="info" style="margin-top: 20px;">
+                <strong>📌 接下来的步骤：</strong><br>
+                1. 下载生成的 JSON 文件<br>
+                2. 打开项目文件夹中的 <code>data/reviews.json</code><br>
+                3. 把新生成的日期数据添加到文件开头<br>
+                4. 保存并上传到服务器
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置默认日期为今天
+        document.getElementById('reviewDate').valueAsDate = new Date();
+
+        // 文件上传处理
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('markdownInput').value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        let parsedData = null;
+
+        function parseMarkdown() {
+            const markdown = document.getElementById('markdownInput').value;
+            const date = document.getElementById('reviewDate').value;
+
+            if (!markdown.trim()) {
+                alert('请先粘贴 Markdown 内容！');
+                return;
+            }
+
+            if (!date) {
+                alert('请选择日期！');
+                return;
+            }
+
+            try {
+                // 解析 Markdown
+                const lines = markdown.split('\n');
+                let title = '';
+                let subtitle = '每一天都在发光发热 ✨';
+                let introHeading = '';
+                let introContent = '';
+                let summary = '';
+                let people = [];
+                let currentPerson = null;
+
+                let inPeopleSection = false;
+                let inSummary = false;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+
+                    // 提取主标题
+                    if (line.startsWith('# ') && !title) {
+                        title = line.replace(/^#\s+/, '').trim();
+                        continue;
+                    }
+
+                    // 检测开始人物分享区域
+                    if (line.startsWith('## ') && line.includes('每位伙伴')) {
+                        inPeopleSection = true;
+                        continue;
+                    }
+
+                    // 检测总结区域
+                    if (line.startsWith('## ') && line.includes('总结')) {
+                        inPeopleSection = false;
+                        inSummary = true;
+                        continue;
+                    }
+
+                    // 在人物区域内解析
+                    if (inPeopleSection) {
+                        // 人物标题: ### 喵喵🐱 「宝藏分享官」
+                        if (line.startsWith('### ')) {
+                            // 保存上一个人
+                            if (currentPerson && currentPerson.content.length > 0) {
+                                people.push(currentPerson);
+                            }
+
+                            // 解析新人物
+                            const personLine = line.replace(/^###\s+/, '');
+                            const emojiMatch = personLine.match(/([^\s]+)(.*)/);
+                            
+                            if (emojiMatch) {
+                                const nameWithEmoji = emojiMatch[1];
+                                const roleMatch = personLine.match(/「(.+?)」/);
+                                
+                                // 提取emoji
+                                const emojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+                                const emoji = nameWithEmoji.match(emojiRegex)?.[0] || '😊';
+                                const name = nameWithEmoji.replace(emojiRegex, '').trim();
+                                const role = roleMatch ? roleMatch[1] : '分享者';
+
+                                currentPerson = {
+                                    name: name,
+                                    emoji: emoji,
+                                    role: role,
+                                    content: []
+                                };
+                            }
+                        }
+
+                        // 内容项: - 分享内容
+                        if (line.startsWith('- ') && currentPerson) {
+                            const content = line.replace(/^-\s+/, '').trim();
+                            if (content) {
+                                currentPerson.content.push(content);
+                            }
+                        }
+                    }
+
+                    // 在开头获取介绍内容（第一个##和人物区域之间）
+                    if (!inPeopleSection && !inSummary && !introContent && line && !line.startsWith('#')) {
+                        if (!introHeading && lines[i-1] && lines[i-1].startsWith('## ')) {
+                            introHeading = lines[i-1].replace(/^##\s+/, '').trim();
+                        }
+                        if (introHeading && line) {
+                            introContent += line + ' ';
+                        }
+                    }
+
+                    // 获取总结内容
+                    if (inSummary && line && !line.startsWith('#')) {
+                        summary += line + ' ';
+                    }
+                }
+
+                // 添加最后一个人
+                if (currentPerson && currentPerson.content.length > 0) {
+                    people.push(currentPerson);
+                }
+
+                // 生成数据对象
+                parsedData = {
+                    [date]: {
+                        title: title || '元气复盘局',
+                        subtitle: subtitle,
+                        intro: {
+                            heading: introHeading || '每个人都在发光发热',
+                            content: introContent.trim() || '超多实用干货+暖心分享！'
+                        },
+                        people: people,
+                        summary: summary.trim() || '今天的复盘超精彩！'
+                    }
+                };
+
+                // 显示结果
+                displayResult(parsedData);
+
+            } catch (error) {
+                alert('解析失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        function displayResult(data) {
+            const date = Object.keys(data)[0];
+            const review = data[date];
+
+            // 显示预览
+            let previewHTML = `
+                <div class="preview-item">
+                    <h3>📅 日期：${date}</h3>
+                    <h3>📝 标题：${review.title}</h3>
+                    <p><strong>副标题：</strong>${review.subtitle}</p>
+                    <p><strong>介绍：</strong>${review.intro.content}</p>
+                </div>
+            `;
+
+            review.people.forEach(person => {
+                previewHTML += `
+                    <div class="preview-item">
+                        <h3>${person.emoji} ${person.name} <span style="color: #999; font-size: 14px;">「${person.role}」</span></h3>
+                        <ul>
+                            ${person.content.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+
+            previewHTML += `
+                <div class="preview-item">
+                    <h3>✨ 总结</h3>
+                    <p>${review.summary}</p>
+                </div>
+            `;
+
+            document.getElementById('previewContainer').innerHTML = previewHTML;
+
+            // 显示 JSON
+            document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+
+            // 显示结果区域
+            document.getElementById('resultSection').classList.add('show');
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function downloadJSON() {
+            if (!parsedData) return;
+
+            const date = Object.keys(parsedData)[0];
+            const dataStr = JSON.stringify(parsedData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `review_${date}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            const jsonText = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert('✅ 已复制到剪贴板！');
+            }).catch(() => {
+alert('❌ 复制失败，请手动复制');
+            });
+        }
+    </script>
+</body>
+</html>

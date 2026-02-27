@@ -1281,22 +1281,30 @@ function initFlagApp(){
         setTimeout(waitForSync, 100);
 
         // 管理员模式：隐藏/显示按钮
-        setTimeout(function(){
-            if(!window.isAdmin) {
-                // 普通用户：隐藏所有管理按钮
-                var btnIds = [
-                    'addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn',
-                    'syncBtn', 'downloadBtn', 'addFlagBtn', 'soundBtn'
-                ];
-                btnIds.forEach(function(id){
-                    var btn = document.getElementById(id);
-                    if(btn) btn.style.display = 'none';
-                });
-                // 隐藏视频输入框
-                var videoInput = document.getElementById('videoFileName');
-                if(videoInput) videoInput.style.display = 'none';
-            }
-        }, 500);
+        function hideAdminButtons() {
+            var isAdmin = window.location.search.indexOf('admin=true') >= 0;
+            if(isAdmin) return; // 管理员不隐藏
+
+            console.log('Hiding admin buttons for normal user');
+
+            var btnIds = [
+                'addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn',
+                'syncBtn', 'downloadBtn', 'addFlagBtn', 'soundBtn'
+            ];
+            btnIds.forEach(function(id){
+                var btn = document.getElementById(id);
+                if(btn) btn.style.display = 'none';
+            });
+            // 隐藏视频输入框
+            var videoInput = document.getElementById('videoFileName');
+            if(videoInput) videoInput.style.display = 'none';
+        }
+
+        // 立即尝试隐藏，然后每隔100ms再试，总共尝试5次
+        hideAdminButtons();
+        for(var i = 1; i <= 5; i++) {
+            setTimeout(hideAdminButtons, i * 100);
+        }
 }
 </script>
     <style>
@@ -1719,7 +1727,7 @@ function initFlagApp(){
                             <span>·</span>
                             <span id="audioStatus">准备就绪</span>
                         </div>
-                        <a id="downloadBtn" href="http://tag3iyctb.hd-bkt.clouddn.com/%E5%B0%8F%E5%A6%AE%EF%BC%9A%E6%B8%A9%E6%9F%94%E5%9C%B0%E9%87%8D%E6%96%B0%E5%85%BB%E8%87%AA%E5%B7%B1.m4a" download style="padding:8px 20px;background:#fff;border:2px solid #FF2442;color:#FF2442;border-radius:20px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px">⬇️ 下载</a>
+                        <a id="audioDownloadBtn" href="http://tag3iyctb.hd-bkt.clouddn.com/%E5%B0%8F%E5%A6%AE%EF%BC%9A%E6%B8%A9%E6%9F%94%E5%9C%B0%E9%87%8D%E6%96%B0%E5%85%BB%E8%87%AA%E5%B7%B1.m4a" download style="padding:8px 20px;background:#fff;border:2px solid #FF2442;color:#FF2442;border-radius:20px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px">⬇️ 下载</a>
                     </div>
                 </div>
             </div>

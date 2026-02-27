@@ -741,6 +741,14 @@ function initFlagApp(){
     window.isAdmin = window.location.search.indexOf('admin=true') >= 0;
     console.log('Admin mode:', window.isAdmin);
 
+    // 普通用户自动从云端同步
+    if(!window.isAdmin && window.doSyncFromCloud) {
+        setTimeout(function(){
+            console.log('Auto downloading from cloud...');
+            window.doSyncFromCloud();
+        }, 3000);
+    }
+
     // 显示每日语录
     if(document.getElementById('dailyQuote')){
         var quotes = [

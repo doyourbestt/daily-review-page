@@ -3284,6 +3284,10 @@ function initFlagApp(){
                     btn.addEventListener('click', function(e) {
                         if (e.target.classList.contains('member-del')) return;
                         if (e.target.classList.contains('member-avatar-img') || e.target.classList.contains('member-avatar-placeholder')) return;
+                        if (e.target.classList.contains('member-memory-btn')) {
+                            showCommemorativeCard(this.dataset.member);
+                            return;
+                        }
                         switchMember(this.dataset.member);
                     });
                 });

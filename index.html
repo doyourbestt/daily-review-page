@@ -735,6 +735,32 @@ min-height: 44px;
     </style>
 </head>
 <body onload="initFlagApp()">
+<!-- 左上角悬浮菜单 -->
+<button class="float-menu-btn" onclick="toggleFloatMenu()">☰</button>
+<div class="float-menu-overlay" id="floatMenuOverlay" onclick="toggleFloatMenu()"></div>
+<div class="float-menu" id="floatMenu">
+    <div class="float-menu-title">⚡ 快捷功能</div>
+    <div class="float-menu-item" onclick="showMyMemoryCard()">
+        <span class="icon">📜</span>
+        <span>我的纪念册</span>
+    </div>
+    <div class="float-menu-item" onclick="showAllMemoryCards()">
+        <span class="icon">👥</span>
+        <span>查看全部</span>
+    </div>
+    <div class="float-menu-item" onclick="showWeekReport();toggleFloatMenu();">
+        <span class="icon">📊</span>
+        <span>本周周报</span>
+    </div>
+    <div class="float-menu-item" id="adminMenuItem1" style="display:none;" onclick="showAddFlagModal();toggleFloatMenu();">
+        <span class="icon">🎯</span>
+        <span>添加Flag</span>
+    </div>
+    <div class="float-menu-item" id="adminMenuItem2" style="display:none;" onclick="showAddMemberModal();toggleFloatMenu();">
+        <span class="icon">👤</span>
+        <span>添加成员</span>
+    </div>
+</div>
 <script>
 function initFlagApp(){
     // 管理员模式检测
@@ -1314,6 +1340,20 @@ function initFlagApp(){
 }
 </script>
     <style>
+    /* 左上角悬浮菜单按钮 */
+    .float-menu-btn {position: fixed; top: 16px; left: 16px; width: 44px; height: 44px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; transition: transform 0.3s;}
+    .float-menu-btn:hover {transform: scale(1.1);}
+    .float-menu-btn:active {transform: scale(0.95);}
+    /* 左侧滑出菜单 */
+    .float-menu {position: fixed; top: 0; left: -200px; width: 180px; height: 100%; background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%); z-index: 10000; transition: left 0.3s; padding: 70px 16px 20px; box-shadow: 4px 0 20px rgba(0,0,0,0.3);}
+    .float-menu.show {left: 0;}
+    .float-menu-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s;}
+    .float-menu-overlay.show {opacity: 1; visibility: visible;}
+    .float-menu-title {color: #fff; font-size: 14px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);}
+    .float-menu-item {display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,0.08); border-radius: 10px; color: #fff; font-size: 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;}
+    .float-menu-item:hover {background: rgba(255,255,255,0.15);}
+    .float-menu-item .icon {font-size: 18px;}
+
     /* 纪念卡片 - 中国风古韵 */
     .commemorative-card-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10010; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.4s;}
     .commemorative-card-overlay.show {opacity: 1; visibility: visible;}
@@ -4048,6 +4088,56 @@ function initFlagApp(){
                     window.closeCommemorativeCard();
                 }
             });
+
+            // 悬浮菜单功能
+            window.toggleFloatMenu = function() {
+                var menu = document.getElementById('floatMenu');
+                var overlay = document.getElementById('floatMenuOverlay');
+                menu.classList.toggle('show');
+                overlay.classList.toggle('show');
+            };
+
+            window.showMyMemoryCard = function() {
+                toggleFloatMenu();
+                var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
+                var current = members[0] || 'me';
+                showCommemorativeCard(current);
+            };
+
+            window.showAllMemoryCards = function() {
+                toggleFloatMenu();
+                var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
+                if(members.length > 0) {
+                    showCommemorativeCard(members[0]);
+                }
+            };
+
+            // 显示添加Flag弹窗
+            window.showAddFlagModal = function() {
+                var modal = document.getElementById('flagModal');
+                if(modal) {
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                }
+            };
+
+            // 显示添加成员弹窗
+            window.showAddMemberModal = function() {
+                var modal = document.getElementById('memberModal');
+                if(modal) {
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                }
+            };
+
+            // 管理员菜单项
+            setTimeout(function(){
+                var isAdmin = window.location.search.indexOf('admin=true') >= 0;
+                if(isAdmin) {
+                    document.getElementById('adminMenuItem1').style.display = 'flex';
+                    document.getElementById('adminMenuItem2').style.display = 'flex';
+                }
+            }, 500);
 
             window.toggleFlag = toggleFlag;
             window.deleteFlag = deleteFlag;

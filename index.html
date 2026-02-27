@@ -741,12 +741,16 @@ function initFlagApp(){
     window.isAdmin = window.location.search.indexOf('admin=true') >= 0;
     console.log('Admin mode:', window.isAdmin);
 
-    // 普通用户自动从云端同步
+    // 普通用户：立即从云端同步数据（页面加载前）
     if(!window.isAdmin && window.doSyncFromCloud) {
-        setTimeout(function(){
-            console.log('Auto downloading from cloud...');
-            window.doSyncFromCloud();
-        }, 3000);
+        // 先显示加载中
+        document.body.innerHTML = '<div style="text-align:center;padding:50px;color:#666;">正在加载数据...</div>';
+        // 执行同步
+        (async function(){
+            await window.doSyncFromCloud();
+            location.reload();
+        })();
+        return; // 停止执行，等同步完刷新
     }
 
     // 显示每日语录

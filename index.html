@@ -1154,7 +1154,7 @@ function initFlagApp(){
             // 等待 Supabase SDK 加载完成
             if(!window.supabase) {
                 console.log('Waiting for Supabase SDK...');
-                setTimeout(window.initSync, 100);
+                setTimeout(window.initSync, 50);
                 return;
             }
 
@@ -1275,20 +1275,20 @@ function initFlagApp(){
                 setTimeout(async function(){
                     console.log('Auto sync starting...');
                     await window.doSyncFromCloud();
-                }, 1000);
+                }, 100);
             } else {
-                // 如果还没准备好，每200ms检查一次，最多等待6秒
+                // 如果还没准备好，每100ms检查一次，最多等待3秒
                 window.syncWaitCount = window.syncWaitCount || 0;
                 console.log('Waiting for sync...', window.syncWaitCount);
                 if(window.syncWaitCount < 30) {
                     window.syncWaitCount++;
-                    setTimeout(waitForSync, 200);
+                    setTimeout(waitForSync, 100);
                 }
             }
         }
 
         // 开始等待
-        setTimeout(waitForSync, 100);
+        setTimeout(waitForSync, 50);
 
         // 管理员模式：隐藏/显示按钮
         function hideAdminButtons() {

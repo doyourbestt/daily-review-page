@@ -1120,6 +1120,28 @@ function initFlagApp(){
                 btn.textContent = '🔇';
             }
         };
+
+        // 手动同步
+        window.manualSync = async function(){
+            var btn = document.getElementById('syncBtn');
+            btn.textContent = '⏳';
+            try {
+                // 先上传
+                await syncToCloud();
+                alert('已上传到云端！');
+            } catch(e) {
+                alert('上传失败: ' + e.message);
+            }
+            try {
+                // 再下载
+                await syncFromCloud();
+                alert('已从云端下载！');
+                location.reload();
+            } catch(e) {
+                alert('下载失败: ' + e.message);
+            }
+            btn.textContent = '🔄';
+        };
 }
 </script>
     <style>
@@ -1290,6 +1312,7 @@ function initFlagApp(){
                     <button class="data-btn" id="batchImportBtn" title="批量导入" onclick="showBatchImport()">📝导入</button>
                     <input type="text" id="videoFileName" placeholder="视频名" style="width:60px;padding:4px 6px;border:none;border-radius:8px;font-size:11px;background:rgba(255,255,255,0.2);color:#fff;" onchange="setVideoFromFile(this.value)">
                     <button class="data-btn" id="soundBtn" title="开关声音" onclick="toggleSound()">🔇</button>
+                    <button class="data-btn" id="syncBtn" title="同步数据" onclick="manualSync()">🔄</button>
                     <button class="data-btn" id="exportBtn" title="导出数据" onclick="exportData()">📥</button>
                     <button class="data-btn" id="importBtn" title="导入数据" onclick="document.getElementById('importFile').click()">📤</button>
                     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">

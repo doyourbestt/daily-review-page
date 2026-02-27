@@ -1203,10 +1203,6 @@ function initFlagApp(){
                 console.log('Download:', data, error);
 
                 if(error || !data) {
-                    // 移除加载提示
-                    var loadingEl = document.getElementById('syncLoading');
-                    if(loadingEl) loadingEl.remove();
-
                     if(!window.autoSyncFromCloud) {
                         alert('没有找到云端数据');
                     }
@@ -1226,10 +1222,6 @@ function initFlagApp(){
                 if(cloudData.video_file) {
                     localStorage.setItem('daily_video_file', cloudData.video_file);
                 }
-
-                // 移除加载提示
-                var loadingEl = document.getElementById('syncLoading');
-                if(loadingEl) loadingEl.remove();
 
                 if(window.autoSyncFromCloud) {
                     // 自动同步：静默刷新
@@ -1264,14 +1256,7 @@ function initFlagApp(){
                 // 标记本次会话已同步
                 sessionStorage.setItem('autoSynced', 'true');
 
-                // 显示加载提示
-                var loadingDiv = document.createElement('div');
-                loadingDiv.id = 'syncLoading';
-                loadingDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999;color:#fff;font-size:18px;';
-                loadingDiv.innerHTML = '正在加载最新数据...';
-                document.body.appendChild(loadingDiv);
-
-                // 执行同步
+                // 静默同步（不显示加载提示）
                 setTimeout(async function(){
                     console.log('Auto sync starting...');
                     await window.doSyncFromCloud();

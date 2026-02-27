@@ -737,6 +737,10 @@ min-height: 44px;
 <body onload="initFlagApp()">
 <script>
 function initFlagApp(){
+    // 管理员模式检测
+    window.isAdmin = window.location.search.indexOf('admin=true') >= 0;
+    console.log('Admin mode:', window.isAdmin);
+
     // 显示每日语录
     if(document.getElementById('dailyQuote')){
         var quotes = [
@@ -1218,6 +1222,18 @@ function initFlagApp(){
 
         // 初始化同步
         window.initSync();
+
+        // 管理员模式：隐藏/显示按钮
+        setTimeout(function(){
+            if(!window.isAdmin) {
+                // 普通用户：隐藏管理按钮
+                var btnIds = ['addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn', 'syncBtn', 'downloadBtn', 'addFlagBtn'];
+                btnIds.forEach(function(id){
+                    var btn = document.getElementById(id);
+                    if(btn) btn.style.display = 'none';
+                });
+            }
+        }, 500);
 }
 </script>
     <style>
@@ -3107,7 +3123,7 @@ function initFlagApp(){
                     const avatarHtml = avatar
                         ? `<img src="${avatar}" class="member-avatar-img" onclick="uploadAvatar('${m}', event)" title="点击更换头像">`
                         : `<div class="member-avatar-placeholder" onclick="uploadAvatar('${m}', event)" title="点击上传头像">${name.charAt(0)}</div>`;
-                    const delBtn = members.length > 1 ? `<span class="member-del" onclick="deleteMember('${m}', event)">×</span>` : '';
+                    const delBtn = (members.length > 1 && window.isAdmin) ? `<span class="member-del" onclick="deleteMember('${m}', event)">×</span>` : '';
                     return `<button class="member-btn ${m === currentMember ? 'active' : ''}" data-member="${m}">${avatarHtml}<span class="member-name">${name}</span>${delBtn}</button>`;
                 }).join('');
                 container.innerHTML = btns;
@@ -3526,7 +3542,7 @@ function initFlagApp(){
                                 ${flagStreak > 0 ? `<span class="flag-streak">🔥${flagStreak}</span>` : ''}
                                 ${bestStreak > 1 ? `<span class="flag-best">🏆${bestStreak}</span>` : ''}
                             </div>
-                            <button class="flag-delete" onclick="deleteFlag('${flag.id}')">×</button>
+                            ${window.isAdmin ? `<button class="flag-delete" onclick="deleteFlag('${flag.id}')">×</button>` : ''}
                         </div>
                     `;
                 }).join('');
@@ -3534,6 +3550,7 @@ function initFlagApp(){
 
             // 切换Flag完成状态
             window.toggleFlag = function(flagId) {
+                if(!window.isAdmin) return; // 普通用户不能完成flag
                 const flags = getCurrentFlags();
                 const flag = flags.find(f => f.id === flagId);
                 if (!flag) return;

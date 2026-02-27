@@ -1144,6 +1144,80 @@ function initFlagApp(){
             }
             btn.textContent = '🔄';
         };
+
+        // Supabase 同步功能（放在全局）
+        window.initSync = function() {
+            var supabase = window.supabase.createClient(
+                'https://vieidfxeouhoddaxqzvc.supabase.co',
+                'sb_publishable_bYG23_onWxKfpUddoPJHcQ_q5C628wZ'
+            );
+
+            window.doSyncToCloud = async function() {
+                var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
+                var flags = JSON.parse(localStorage.getItem('daily_flags_v2') || '{}');
+                var avatars = JSON.parse(localStorage.getItem('daily_avatars') || '{}');
+                var videoFile = localStorage.getItem('daily_video_file') || '';
+
+                var data = {
+                    members: members,
+                    flags: flags,
+                    avatars: avatars,
+                    video_file: videoFile,
+                    updated_at: new Date().toISOString()
+                };
+
+                console.log('Uploading:', data);
+
+                var { error } = await supabase
+                    .from('app_data')
+                    .upsert({ id: 'main', data: JSON.stringify(data), updated_at: new Date().toISOString() }, { onConflict: 'id' })
+                    .select();
+
+                if(error) {
+                    console.log('Upload error:', error);
+                    alert('上传失败: ' + error.message);
+                } else {
+                    alert('上传成功！');
+                }
+            };
+
+            window.doSyncFromCloud = async function() {
+                var { data, error } = await supabase
+                    .from('app_data')
+                    .select('data')
+                    .eq('id', 'main')
+                    .single();
+
+                console.log('Download:', data, error);
+
+                if(error || !data) {
+                    alert('没有找到云端数据');
+                    return;
+                }
+
+                var cloudData = JSON.parse(data.data);
+                if(cloudData.members) {
+                    localStorage.setItem('daily_members', JSON.stringify(cloudData.members));
+                }
+                if(cloudData.flags) {
+                    localStorage.setItem('daily_flags_v2', JSON.stringify(cloudData.flags));
+                }
+                if(cloudData.avatars) {
+                    localStorage.setItem('daily_avatars', JSON.stringify(cloudData.avatars));
+                }
+                if(cloudData.video_file) {
+                    localStorage.setItem('daily_video_file', cloudData.video_file);
+                }
+
+                alert('下载成功！页面将刷新');
+                location.reload();
+            };
+
+            console.log('Sync initialized');
+        };
+
+        // 初始化同步
+        window.initSync();
 }
 </script>
     <style>
@@ -1314,7 +1388,8 @@ function initFlagApp(){
                     <button class="data-btn" id="batchImportBtn" title="批量导入" onclick="showBatchImport()">📝导入</button>
                     <input type="text" id="videoFileName" placeholder="视频名" style="width:60px;padding:4px 6px;border:none;border-radius:8px;font-size:11px;background:rgba(255,255,255,0.2);color:#fff;" onchange="setVideoFromFile(this.value)">
                     <button class="data-btn" id="soundBtn" title="开关声音" onclick="toggleSound()">🔇</button>
-                    <button class="data-btn" id="syncBtn" title="同步数据" onclick="manualSync()">🔄</button>
+                    <button class="data-btn" id="syncBtn" title="同步数据" onclick="doSyncToCloud()">⬆上传</button>
+                    <button class="data-btn" id="downloadBtn" title="下载数据" onclick="doSyncFromCloud()">⬇下载</button>
                     <button class="data-btn" id="exportBtn" title="导出数据" onclick="exportData()">📥</button>
                     <button class="data-btn" id="importBtn" title="导入数据" onclick="document.getElementById('importFile').click()">📤</button>
                     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">

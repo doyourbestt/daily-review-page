@@ -1226,12 +1226,18 @@ function initFlagApp(){
         // 管理员模式：隐藏/显示按钮
         setTimeout(function(){
             if(!window.isAdmin) {
-                // 普通用户：隐藏管理按钮
-                var btnIds = ['addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn', 'syncBtn', 'downloadBtn', 'addFlagBtn'];
+                // 普通用户：隐藏所有管理按钮
+                var btnIds = [
+                    'addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn',
+                    'syncBtn', 'downloadBtn', 'addFlagBtn', 'soundBtn'
+                ];
                 btnIds.forEach(function(id){
                     var btn = document.getElementById(id);
                     if(btn) btn.style.display = 'none';
                 });
+                // 隐藏视频输入框
+                var videoInput = document.getElementById('videoFileName');
+                if(videoInput) videoInput.style.display = 'none';
             }
         }, 500);
 }

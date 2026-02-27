@@ -1250,9 +1250,19 @@ function initFlagApp(){
         function waitForSync() {
             // 再次检查管理员模式（因为isAdmin可能在initFlagApp中才设置）
             var isAdmin = window.location.search.indexOf('admin=true') >= 0;
+
+            // 检查是否已经同步过（避免刷新后重复同步）
+            var alreadySynced = sessionStorage.getItem('autoSynced');
+            if(alreadySynced) {
+                console.log('Already synced this session, skipping auto-sync');
+                return;
+            }
+
             if(!isAdmin && window.doSyncFromCloud) {
                 // 设置自动同步标记
                 window.autoSyncFromCloud = true;
+                // 标记本次会话已同步
+                sessionStorage.setItem('autoSynced', 'true');
 
                 // 显示加载提示
                 var loadingDiv = document.createElement('div');

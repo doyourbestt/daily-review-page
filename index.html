@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>元气复盘局 | 每一天都在发光发热</title>
     <meta name="description" content="Daily team review and reflection sharing platform">
-    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- Preload critical assets -->
     <link rel="preload" href="./data/reviews.json" as="fetch" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2507,6 +2509,92 @@ function initFlagApp(){
             const FLAGS_KEY = 'daily_flags_v2';
             const MEMBERS_KEY = 'daily_members';
             const AVATARS_KEY = 'daily_avatars'; // 头像存储键
+            const SYNC_KEY = 'last_sync_time'; // 上次同步时间
+
+            // Supabase配置
+            const SUPABASE_URL = 'https://vieidfxeouhoddaxqzvc.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_bYG23_onWxKfpUddoPJHcQ_q5C628wZ';
+
+            // 初始化Supabase
+            let supabase = null;
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } catch(e) {
+                console.log('Supabase init failed', e);
+            }
+
+            // 同步数据到云端
+            async function syncToCloud() {
+                if(!supabase) return;
+                try {
+                    const data = {
+                        members: members,
+                        flags: flagsData,
+                        avatars: avatars,
+                        video_file: localStorage.getItem('daily_video_file'),
+                        updated_at: new Date().toISOString()
+                    };
+                    // 先尝试更新，如果表不存在会失败
+                    const { error } = await supabase.from('app_data').upsert({
+                        id: 'main',
+                        data: JSON.stringify(data),
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'id' });
+                    if(error) {
+                        // 表可能不存在，创建表
+                        await supabase.from('app_data').insert({
+                            id: 'main',
+                            data: JSON.stringify(data)
+                        });
+                    }
+                    localStorage.setItem(SYNC_KEY, new Date().toISOString());
+                } catch(e) {
+                    console.log('Sync error', e);
+                }
+            }
+
+            // 从云端同步数据
+            async function syncFromCloud() {
+                if(!supabase) return;
+                try {
+                    const { data, error } = await supabase.from('app_data').select('data').eq('id', 'main').single();
+                    if(data && data.data) {
+                        const cloudData = JSON.parse(data.data);
+                        if(cloudData.members) {
+                            members = cloudData.members;
+                            localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+                            window.members = members;
+                        }
+                        if(cloudData.flags) {
+                            flagsData = cloudData.flags;
+                            localStorage.setItem(FLAGS_KEY, JSON.stringify(flagsData));
+                            window.flagsData = flagsData;
+                        }
+                        if(cloudData.avatars) {
+                            avatars = cloudData.avatars;
+                            localStorage.setItem(AVATARS_KEY, JSON.stringify(avatars));
+                        }
+                        if(cloudData.video_file) {
+                            localStorage.setItem('daily_video_file', cloudData.video_file);
+                        }
+                    }
+                } catch(e) {
+                    console.log('Sync from cloud error', e);
+                }
+            }
+
+            // 自动同步（页面加载时从云端拉取，保存后同步到云端）
+            const originalSaveData = saveData;
+            saveData = function() {
+                originalSaveData();
+                syncToCloud();
+            };
+
+            // 页面加载时尝试同步
+            window.addEventListener('load', function() {
+                syncFromCloud();
+            });
+
             let currentMember = 'me';
             window.members = ['me'];
             window.flagsData = {};

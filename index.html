@@ -1125,20 +1125,22 @@ function initFlagApp(){
         window.manualSync = async function(){
             var btn = document.getElementById('syncBtn');
             btn.textContent = '⏳';
-            try {
-                // 先上传
-                await syncToCloud();
-                alert('已上传到云端！');
-            } catch(e) {
-                alert('上传失败: ' + e.message);
-            }
-            try {
-                // 再下载
-                await syncFromCloud();
-                alert('已从云端下载！');
+            alert('请打开浏览器控制台(F12)查看同步详情');
+
+            // 先上传
+            var uploadResult = await syncToCloud();
+            console.log('Upload result:', uploadResult);
+            alert('上传完成，请查看控制台');
+
+            // 再下载
+            var downloadResult = await syncFromCloud();
+            console.log('Download result:', downloadResult);
+
+            if(downloadResult && downloadResult.success) {
+                alert('同步成功！页面将刷新');
                 location.reload();
-            } catch(e) {
-                alert('下载失败: ' + e.message);
+            } else {
+                alert('同步完成，请查看控制台输出');
             }
             btn.textContent = '🔄';
         };
@@ -2548,7 +2550,11 @@ function initFlagApp(){
 
             // 同步数据到云端
             async function syncToCloud() {
-                if(!supabase) return;
+                console.log('Syncing to cloud...');
+                if(!supabase) {
+                    console.log('No supabase client');
+                    return;
+                }
                 try {
                     const data = {
                         members: members,
@@ -2557,32 +2563,50 @@ function initFlagApp(){
                         video_file: localStorage.getItem('daily_video_file'),
                         updated_at: new Date().toISOString()
                     };
-                    // 先尝试更新，如果表不存在会失败
-                    const { error } = await supabase.from('app_data').upsert({
-                        id: 'main',
-                        data: JSON.stringify(data),
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: 'id' });
-                    if(error) {
-                        // 表可能不存在，创建表
-                        await supabase.from('app_data').insert({
+                    console.log('Uploading data:', data);
+
+                    // 使用upsert
+                    const { data: result, error } = await supabase
+                        .from('app_data')
+                        .upsert({
                             id: 'main',
-                            data: JSON.stringify(data)
-                        });
+                            data: JSON.stringify(data),
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'id' })
+                        .select();
+
+                    console.log('Upload result:', result, error);
+                    if(error) {
+                        console.log('Upload error:', error);
                     }
                     localStorage.setItem(SYNC_KEY, new Date().toISOString());
+                    return { success: !error, error };
                 } catch(e) {
                     console.log('Sync error', e);
+                    return { success: false, error: e };
                 }
             }
 
             // 从云端同步数据
             async function syncFromCloud() {
-                if(!supabase) return;
+                console.log('Syncing from cloud...');
+                if(!supabase) {
+                    console.log('No supabase client');
+                    return;
+                }
                 try {
-                    const { data, error } = await supabase.from('app_data').select('data').eq('id', 'main').single();
+                    const { data, error } = await supabase
+                        .from('app_data')
+                        .select('data')
+                        .eq('id', 'main')
+                        .single();
+
+                    console.log('Download result:', data, error);
+
                     if(data && data.data) {
                         const cloudData = JSON.parse(data.data);
+                        console.log('Cloud data:', cloudData);
+
                         if(cloudData.members) {
                             members = cloudData.members;
                             localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
@@ -2600,9 +2624,14 @@ function initFlagApp(){
                         if(cloudData.video_file) {
                             localStorage.setItem('daily_video_file', cloudData.video_file);
                         }
+                        return { success: true };
+                    } else {
+                        console.log('No cloud data found');
+                        return { success: false, error: 'No data' };
                     }
                 } catch(e) {
                     console.log('Sync from cloud error', e);
+                    return { success: false, error: e };
                 }
             }
 

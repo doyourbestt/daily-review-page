@@ -1314,6 +1314,42 @@ function initFlagApp(){
 }
 </script>
     <style>
+    /* 纪念卡片 - 中国风古韵 */
+    .commemorative-card-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10010; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.4s;}
+    .commemorative-card-overlay.show {opacity: 1; visibility: visible;}
+    .commemorative-card {width: 85%; max-width: 340px; background: linear-gradient(180deg, #f9f3e8 0%, #f5ecd8 100%); border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(139,69,19,0.1); position: relative; overflow: hidden; transform: scale(0.8); transition: transform 0.4s;}
+    .commemorative-card-overlay.show .commemorative-card {transform: scale(1);}
+    /* 卷轴装饰 */
+    .commemorative-card::before, .commemorative-card::after {content: ''; position: absolute; top: 0; bottom: 0; width: 20px; background: linear-gradient(90deg, #8B4513, #A0522D); border-radius: 3px;}
+    .commemorative-card::before {left: 0; background: linear-gradient(90deg, #654321, #8B4513);}
+    .commemorative-card::after {right: 0; background: linear-gradient(90deg, #8B4513, #654321);}
+    /* 顶部装饰 */
+    .card-header-decor {height: 8px; background: linear-gradient(90deg, #8B4513, #D2691E, #8B4513);}
+    .card-title-area {text-align: center; padding: 16px 30px 8px; position: relative;}
+    .card-title {font-size: 20px; color: #5D4037; font-weight: 700; letter-spacing: 4px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);}
+    .card-subtitle {font-size: 11px; color: #8D6E63; margin-top: 4px; letter-spacing: 2px;}
+    /* 成员信息 */
+    .card-member {text-align: center; padding: 12px;}
+    .card-avatar {width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 8px; border: 3px solid #D2691E; box-shadow: 0 3px 10px rgba(0,0,0,0.2); object-fit: cover;}
+    .card-avatar-placeholder {width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 8px; border: 3px solid #D2691E; box-shadow: 0 3px 10px rgba(0,0,0,0.2); background: linear-gradient(135deg, #D2691E, #8B4513); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff;}
+    .card-name {font-size: 16px; color: #4E342E; font-weight: 600;}
+    /* 数据展示 */
+    .card-stats {display: flex; justify-content: center; gap: 16px; padding: 12px 20px; flex-wrap: wrap;}
+    .card-stat {text-align: center; flex: 1; min-width: 70px;}
+    .card-stat-value {font-size: 24px; font-weight: 700; color: #D84315; line-height: 1.2;}
+    .card-stat-label {font-size: 10px; color: #8D6E63; margin-top: 2px; letter-spacing: 1px;}
+    .card-stat.separator {width: 1px; background: #D7CCC8; margin: 0 4px;}
+    /* 底部装饰 */
+    .card-footer {padding: 12px 30px 16px; text-align: center;}
+    .card-seal {display: inline-block; padding: 6px 16px; border: 2px solid #C62828; color: #C62828; font-size: 12px; font-weight: 700; border-radius: 4px; transform: rotate(-5deg); opacity: 0.9;}
+    .card-date {font-size: 10px; color: #A1887F; margin-top: 8px;}
+    /* 关闭按钮 */
+    .card-close {position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border: none; background: rgba(139,69,19,0.1); border-radius: 50%; color: #8B4513; font-size: 18px; cursor: pointer; z-index: 10;}
+    .card-close:hover {background: rgba(139,69,19,0.2);}
+    /* 纪念按钮 */
+    .member-memory-btn {margin-left: 4px; background: none; border: none; font-size: 14px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;}
+    .member-memory-btn:hover {opacity: 1;}
+
     body.flags-only {background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px 16px;}
     body.flags-only .flags-wrapper {max-width: 480px; margin: 0 auto; position: relative; z-index: 10;}
     body.flags-only .video-bg {position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; overflow: hidden;}
@@ -1591,6 +1627,43 @@ function initFlagApp(){
             </div>
             <div class="flag-modal-body" id="weekReportContent">
                 <!-- 周报内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 纪念卡片弹窗 -->
+    <div class="commemorative-card-overlay" id="commemorativeCard">
+        <div class="commemorative-card">
+            <button class="card-close" onclick="closeCommemorativeCard()">×</button>
+            <div class="card-header-decor"></div>
+            <div class="card-title-area">
+                <div class="card-title">纪念册</div>
+                <div class="card-subtitle">MEMORIAL CARD</div>
+            </div>
+            <div class="card-member">
+                <img src="" class="card-avatar" id="cardAvatar" alt="头像">
+                <div class="card-avatar-placeholder" id="cardAvatarPlaceholder" style="display:none;"></div>
+                <div class="card-name" id="cardName">成员名字</div>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat">
+                    <div class="card-stat-value" id="cardReviewCount">0</div>
+                    <div class="card-stat-label">复盘次数</div>
+                </div>
+                <div class="card-stat separator"></div>
+                <div class="card-stat">
+                    <div class="card-stat-value" id="cardDays">0</div>
+                    <div class="card-stat-label">累计天数</div>
+                </div>
+                <div class="card-stat separator"></div>
+                <div class="card-stat">
+                    <div class="card-stat-value" id="cardFlags">0</div>
+                    <div class="card-stat-label">获得Flag</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="card-seal">时光印记</div>
+                <div class="card-date" id="cardJoinDate">加入日期：2024年</div>
             </div>
         </div>
     </div>
@@ -3201,7 +3274,8 @@ function initFlagApp(){
                         ? `<img src="${avatar}" class="member-avatar-img" onclick="uploadAvatar('${m}', event)" title="点击更换头像">`
                         : `<div class="member-avatar-placeholder" onclick="uploadAvatar('${m}', event)" title="点击上传头像">${name.charAt(0)}</div>`;
                     const delBtn = (members.length > 1 && window.isAdmin) ? `<span class="member-del" onclick="deleteMember('${m}', event)">×</span>` : '';
-                    return `<button class="member-btn ${m === currentMember ? 'active' : ''}" data-member="${m}">${avatarHtml}<span class="member-name">${name}</span>${delBtn}</button>`;
+                    const memBtn = `<span class="member-memory-btn" onclick="showCommemorativeCard('${m}')" title="查看纪念册">📜</span>`;
+                    return `<button class="member-btn ${m === currentMember ? 'active' : ''}" data-member="${m}">${avatarHtml}<span class="member-name">${name}</span>${memBtn}${delBtn}</button>`;
                 }).join('');
                 container.innerHTML = btns;
 
@@ -3896,6 +3970,81 @@ function initFlagApp(){
             // 暴露函数到全局
             window.switchMember = switchMember;
             window.deleteMember = deleteMember;
+            // 纪念卡片功能
+            window.showCommemorativeCard = function(memberName) {
+                var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
+                var flags = JSON.parse(localStorage.getItem('daily_flags_v2') || '{}');
+                var avatars = JSON.parse(localStorage.getItem('daily_avatars') || '{}');
+
+                var name = memberName === 'me' ? '自己' : memberName;
+                var avatar = avatars[memberName] || '';
+
+                // 计算统计数据
+                var reviewCount = 0;
+                var totalDays = 0;
+                var flagCount = 0;
+                var joinDate = '未知';
+
+                // 获取该成员的flags
+                var memberFlags = flags[memberName] || [];
+                if(memberFlags && memberFlags.length > 0) {
+                    flagCount = memberFlags.length;
+
+                    // 计算复盘次数和累计天数
+                    var allDates = new Set();
+                    memberFlags.forEach(function(f) {
+                        if(f.logs) {
+                            f.logs.forEach(function(log) {
+                                if(log.completed) {
+                                    allDates.add(log.date);
+                                    reviewCount++;
+                                }
+                            });
+                        }
+                    });
+                    totalDays = allDates.size;
+
+                    // 获取最早加入日期
+                    var dates = Array.from(allDates).sort();
+                    if(dates.length > 0) {
+                        joinDate = dates[0];
+                    }
+                }
+
+                // 更新卡片内容
+                var avatarImg = document.getElementById('cardAvatar');
+                var avatarPlaceholder = document.getElementById('cardAvatarPlaceholder');
+                if(avatar) {
+                    avatarImg.src = avatar;
+                    avatarImg.style.display = 'block';
+                    avatarPlaceholder.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    avatarPlaceholder.textContent = name.charAt(0);
+                    avatarPlaceholder.style.display = 'flex';
+                }
+                document.getElementById('cardName').textContent = name;
+                document.getElementById('cardReviewCount').textContent = reviewCount;
+                document.getElementById('cardDays').textContent = totalDays;
+                document.getElementById('cardFlags').textContent = flagCount;
+                document.getElementById('cardJoinDate').textContent = '加入日期：' + joinDate;
+
+                // 显示卡片
+                var cardOverlay = document.getElementById('commemorativeCard');
+                cardOverlay.classList.add('show');
+            };
+
+            window.closeCommemorativeCard = function() {
+                document.getElementById('commemorativeCard').classList.remove('show');
+            };
+
+            // 点击卡片外部关闭
+            document.getElementById('commemorativeCard').addEventListener('click', function(e) {
+                if(e.target.classList.contains('commemorative-card-overlay')) {
+                    window.closeCommemorativeCard();
+                }
+            });
+
             window.toggleFlag = toggleFlag;
             window.deleteFlag = deleteFlag;
             window.exportData = exportData;

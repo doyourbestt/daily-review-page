@@ -1295,26 +1295,37 @@ function initFlagApp(){
             var isAdmin = window.location.search.indexOf('admin=true') >= 0;
             if(isAdmin) return; // 管理员不隐藏
 
-            console.log('Hiding admin buttons for normal user');
-
             var btnIds = [
                 'addMemberBtn2', 'batchImportBtn', 'exportBtn', 'importBtn',
-                'syncBtn', 'downloadBtn', 'addFlagBtn', 'soundBtn'
+                'syncBtn', 'downloadBtn', 'addFlagBtn', 'soundBtn', 'weekReportBtn'
             ];
+            var hiddenCount = 0;
             btnIds.forEach(function(id){
                 var btn = document.getElementById(id);
-                if(btn) btn.style.display = 'none';
+                if(btn) {
+                    btn.style.display = 'none';
+                    hiddenCount++;
+                }
             });
             // 隐藏视频输入框
             var videoInput = document.getElementById('videoFileName');
             if(videoInput) videoInput.style.display = 'none';
+
+            // 如果还有按钮没隐藏，继续尝试
+            var totalBtns = btnIds.length;
+            if(hiddenCount < totalBtns) {
+                setTimeout(hideAdminButtons, 100);
+            }
         }
 
-        // 立即尝试隐藏，然后每隔100ms再试，总共尝试5次
-        hideAdminButtons();
-        for(var i = 1; i <= 5; i++) {
-            setTimeout(hideAdminButtons, i * 100);
+        // 等待页面加载完成后隐藏按钮
+        if(document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', hideAdminButtons);
         }
+        // 额外再尝试几次
+        setTimeout(hideAdminButtons, 500);
+        setTimeout(hideAdminButtons, 1000);
+        setTimeout(hideAdminButtons, 2000);
 }
 </script>
     <style>

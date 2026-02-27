@@ -741,18 +741,6 @@ function initFlagApp(){
     window.isAdmin = window.location.search.indexOf('admin=true') >= 0;
     console.log('Admin mode:', window.isAdmin);
 
-    // 普通用户：立即从云端同步数据（页面加载前）
-    if(!window.isAdmin && window.doSyncFromCloud) {
-        // 先显示加载中
-        document.body.innerHTML = '<div style="text-align:center;padding:50px;color:#666;">正在加载数据...</div>';
-        // 执行同步
-        (async function(){
-            await window.doSyncFromCloud();
-            location.reload();
-        })();
-        return; // 停止执行，等同步完刷新
-    }
-
     // 显示每日语录
     if(document.getElementById('dailyQuote')){
         var quotes = [
@@ -1163,10 +1151,18 @@ function initFlagApp(){
 
         // Supabase 同步功能（放在全局）
         window.initSync = function() {
+            // 等待 Supabase SDK 加载完成
+            if(!window.supabase) {
+                console.log('Waiting for Supabase SDK...');
+                setTimeout(window.initSync, 100);
+                return;
+            }
+
             var supabase = window.supabase.createClient(
                 'https://vieidfxeouhoddaxqzvc.supabase.co',
                 'sb_publishable_bYG23_onWxKfpUddoPJHcQ_q5C628wZ'
             );
+            console.log('Supabase client created');
 
             window.doSyncToCloud = async function() {
                 var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
@@ -1207,7 +1203,13 @@ function initFlagApp(){
                 console.log('Download:', data, error);
 
                 if(error || !data) {
-                    alert('没有找到云端数据');
+                    // 移除加载提示
+                    var loadingEl = document.getElementById('syncLoading');
+                    if(loadingEl) loadingEl.remove();
+
+                    if(!window.autoSyncFromCloud) {
+                        alert('没有找到云端数据');
+                    }
                     return;
                 }
 
@@ -1225,8 +1227,17 @@ function initFlagApp(){
                     localStorage.setItem('daily_video_file', cloudData.video_file);
                 }
 
-                alert('下载成功！页面将刷新');
-                location.reload();
+                // 移除加载提示
+                var loadingEl = document.getElementById('syncLoading');
+                if(loadingEl) loadingEl.remove();
+
+                if(window.autoSyncFromCloud) {
+                    // 自动同步：静默刷新
+                    location.reload();
+                } else {
+                    alert('下载成功！页面将刷新');
+                    location.reload();
+                }
             };
 
             console.log('Sync initialized');
@@ -1234,6 +1245,40 @@ function initFlagApp(){
 
         // 初始化同步
         window.initSync();
+
+        // 等待Supabase加载完成后执行自动同步
+        function waitForSync() {
+            // 再次检查管理员模式（因为isAdmin可能在initFlagApp中才设置）
+            var isAdmin = window.location.search.indexOf('admin=true') >= 0;
+            if(!isAdmin && window.doSyncFromCloud) {
+                // 设置自动同步标记
+                window.autoSyncFromCloud = true;
+
+                // 显示加载提示
+                var loadingDiv = document.createElement('div');
+                loadingDiv.id = 'syncLoading';
+                loadingDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999;color:#fff;font-size:18px;';
+                loadingDiv.innerHTML = '正在加载最新数据...';
+                document.body.appendChild(loadingDiv);
+
+                // 执行同步
+                setTimeout(async function(){
+                    console.log('Auto sync starting...');
+                    await window.doSyncFromCloud();
+                }, 1000);
+            } else {
+                // 如果还没准备好，每200ms检查一次，最多等待6秒
+                window.syncWaitCount = window.syncWaitCount || 0;
+                console.log('Waiting for sync...', window.syncWaitCount);
+                if(window.syncWaitCount < 30) {
+                    window.syncWaitCount++;
+                    setTimeout(waitForSync, 200);
+                }
+            }
+        }
+
+        // 开始等待
+        setTimeout(waitForSync, 100);
 
         // 管理员模式：隐藏/显示按钮
         setTimeout(function(){

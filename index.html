@@ -735,6 +735,36 @@ min-height: 44px;
     </style>
 </head>
 <body onload="initFlagApp()">
+<script>
+// 确保基础函数在任何HTML之前可用
+window.toggleFloatMenu = window.toggleFloatMenu || function() {
+    var menu = document.getElementById('floatMenu');
+    var overlay = document.getElementById('floatMenuOverlay');
+    if(menu && overlay) {
+        menu.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+};
+window.closeAncientModal = window.closeAncientModal || function(modalId) {
+    var modal = document.getElementById(modalId);
+    if(modal) {
+        modal.classList.remove('show');
+    }
+};
+window.showDailyReview = window.showDailyReview || function() { console.log('Loading...'); };
+window.showWeekReport = window.showWeekReport || function() { console.log('Loading...'); };
+window.showMyMemoryCard = window.showMyMemoryCard || function() { console.log('Loading...'); };
+window.showAllMemoryCards = window.showAllMemoryCards || function() { console.log('Loading...'); };
+window.showAddFlagModal = window.showAddFlagModal || function() { console.log('Loading...'); };
+window.showAddMemberModal = window.showAddMemberModal || function() { console.log('Loading...'); };
+window.openAncientModal = window.openAncientModal || function(modalId) {
+    var modal = document.getElementById(modalId);
+    if(modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+    }
+};
+</script>
 <!-- 左上角悬浮菜单 -->
 <button class="float-menu-btn" onclick="toggleFloatMenu()">☰</button>
 <div class="float-menu-overlay" id="floatMenuOverlay" onclick="toggleFloatMenu()"></div>

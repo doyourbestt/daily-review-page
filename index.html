@@ -771,6 +771,7 @@ window.showDailyReview = function() {
     }
     if(modal) {
         modal.style.display = 'flex';
+        console.log('Modal style:', modal.style.display, 'height:', modal.offsetHeight, 'content height:', content ? content.offsetHeight : 'N/A');
         setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };

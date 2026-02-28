@@ -758,40 +758,88 @@ window.openAncientModal = window.openAncientModal || function(modalId) {
         setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };
-// 预定义所有菜单功能
-window.showDailyReview = function() { console.log('Daily review loading...'); };
-window.showWeekReport = function() { console.log('Week report loading...'); };
-window.showMyMemoryCard = function() { console.log('Memory card loading...'); };
-window.showAllMemoryCards = function() { console.log('All memory cards loading...'); };
-window.showAddFlagModal = function() { console.log('Add flag loading...'); };
-window.showAddMemberModal = function() { console.log('Add member loading...'); };
+// 延迟设置菜单点击事件，等待函数定义完成
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        // 悬浮菜单按钮
+        var floatBtn = document.getElementById('floatMenuBtn');
+        if(floatBtn) {
+            floatBtn.addEventListener('click', function() {
+                var menu = document.getElementById('floatMenu');
+                var overlay = document.getElementById('floatMenuOverlay');
+                menu.classList.toggle('show');
+                overlay.classList.toggle('show');
+            });
+        }
+        var overlay = document.getElementById('floatMenuOverlay');
+        if(overlay) {
+            overlay.addEventListener('click', function() {
+                var menu = document.getElementById('floatMenu');
+                menu.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+        }
+        // 菜单项点击
+        document.querySelectorAll('.float-menu-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var action = this.getAttribute('data-action');
+                var menu = document.getElementById('floatMenu');
+                var overlay = document.getElementById('floatMenuOverlay');
+                menu.classList.remove('show');
+                overlay.classList.remove('show');
+                setTimeout(function() {
+                    switch(action) {
+                        case 'dailyReview':
+                            if(window.showDailyReview) window.showDailyReview();
+                            break;
+                        case 'myMemory':
+                            if(window.showMyMemoryCard) window.showMyMemoryCard();
+                            break;
+                        case 'allMemory':
+                            if(window.showAllMemoryCards) window.showAllMemoryCards();
+                            break;
+                        case 'weekReport':
+                            if(window.showWeekReport) window.showWeekReport();
+                            break;
+                        case 'addFlag':
+                            if(window.showAddFlagModal) window.showAddFlagModal();
+                            break;
+                        case 'addMember':
+                            if(window.showAddMemberModal) window.showAddMemberModal();
+                            break;
+                    }
+                }, 100);
+            });
+        });
+    }, 500);
+});
 </script>
 <!-- 左上角悬浮菜单 -->
-<button class="float-menu-btn" onclick="toggleFloatMenu()">☰</button>
-<div class="float-menu-overlay" id="floatMenuOverlay" onclick="toggleFloatMenu()"></div>
+<button class="float-menu-btn" id="floatMenuBtn">☰</button>
+<div class="float-menu-overlay" id="floatMenuOverlay"></div>
 <div class="float-menu" id="floatMenu">
     <div class="float-menu-title">⚡ 快捷功能</div>
-    <div class="float-menu-item btn-ripple" onclick="showDailyReview();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" data-action="dailyReview">
         <span class="icon">🌙</span>
         <span>今日复盘</span>
     </div>
-    <div class="float-menu-item btn-ripple" onclick="showMyMemoryCard()">
+    <div class="float-menu-item btn-ripple" data-action="myMemory">
         <span class="icon">📜</span>
         <span>我的纪念册</span>
     </div>
-    <div class="float-menu-item btn-ripple" onclick="showAllMemoryCards()">
+    <div class="float-menu-item btn-ripple" data-action="allMemory">
         <span class="icon">👥</span>
         <span>查看全部</span>
     </div>
-    <div class="float-menu-item btn-ripple" onclick="showWeekReport();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" data-action="weekReport">
         <span class="icon">📊</span>
         <span>本周周报</span>
     </div>
-    <div class="float-menu-item btn-ripple" id="adminMenuItem1" style="display:none;" onclick="showAddFlagModal();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" id="adminMenuItem1" style="display:none;" data-action="addFlag">
         <span class="icon">🎯</span>
         <span>添加Flag</span>
     </div>
-    <div class="float-menu-item btn-ripple" id="adminMenuItem2" style="display:none;" onclick="showAddMemberModal();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" id="adminMenuItem2" style="display:none;" data-action="addMember">
         <span class="icon">👤</span>
         <span>添加成员</span>
     </div>

@@ -772,7 +772,6 @@ window.showDailyReview = function() {
     if(modal) {
         modal.style.display = 'flex';
         console.log('Modal height:', modal.offsetHeight, 'Content height:', content ? content.offsetHeight : 'N/A');
-        alert('弹窗高度: ' + modal.offsetHeight + 'px, 内容高度: ' + (content ? content.offsetHeight : 'N/A'));
         setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };

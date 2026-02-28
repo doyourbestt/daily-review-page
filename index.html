@@ -763,7 +763,12 @@ window.showDailyReview = function() {
     console.log('Simple showDailyReview called');
     var modal = document.getElementById('dailyReviewModal');
     var content = modal ? modal.querySelector('.ancient-modal-content') : null;
-    if(content) content.classList.add('with-scroll');
+    if(content) {
+        content.classList.add('with-scroll');
+        content.style.height = 'auto';
+        content.style.minHeight = '200px';
+        content.style.maxHeight = '85vh';
+    }
     if(modal) {
         modal.style.display = 'flex';
         setTimeout(function(){modal.classList.add('show');}, 10);
@@ -1493,7 +1498,7 @@ function initFlagApp(){
         position:relative;overflow:hidden;transform:scale(0.8);transition:transform 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
         margin:auto;
     }
-    .ancient-modal-content.with-scroll {overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .ancient-modal-content.with-scroll {overflow-y:scroll !important;-webkit-overflow-scrolling:touch;}
     .ancient-modal-content::before,.ancient-modal-content::after {
         content:'';position:absolute;top:0;bottom:0;width:16px;
         background:linear-gradient(90deg,#654321,#8B4513);

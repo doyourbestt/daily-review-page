@@ -740,6 +740,10 @@ min-height: 44px;
 <div class="float-menu-overlay" id="floatMenuOverlay" onclick="toggleFloatMenu()"></div>
 <div class="float-menu" id="floatMenu">
     <div class="float-menu-title">⚡ 快捷功能</div>
+    <div class="float-menu-item btn-ripple" onclick="showDailyReview();toggleFloatMenu();">
+        <span class="icon">🌙</span>
+        <span>今日复盘</span>
+    </div>
     <div class="float-menu-item btn-ripple" onclick="showMyMemoryCard()">
         <span class="icon">📜</span>
         <span>我的纪念册</span>
@@ -1752,6 +1756,19 @@ function initFlagApp(){
             <div class="card-footer">
                 <div class="card-seal">时光印记</div>
                 <div class="card-date" id="cardJoinDate">加入日期：2024年</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 每日复盘引导弹窗 -->
+    <div class="ancient-modal" id="dailyReviewModal" style="display:none;">
+        <div class="ancient-modal-content">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">🌙 今日复盘</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('dailyReviewModal')">×</button>
+            </div>
+            <div class="ancient-modal-body" id="dailyReviewBody">
+                <!-- 动态内容 -->
             </div>
         </div>
     </div>
@@ -4185,6 +4202,89 @@ function initFlagApp(){
                     showCommemorativeCard(members[0]);
                 }
             };
+
+            // ===== 每日复盘引导功能 =====
+            var dailyReviewQuestions = [
+                {q: '今天最有成就感的一件事是什么？', placeholder: '写下让你感到骄傲的事...'},
+                {q: '今天有什么可以做得更好？', placeholder: '思考一下改进空间...'},
+                {q: '今天最感恩的一件事？', placeholder: '珍惜当下的美好...'},
+                {q: '今天学到了什么新东西？', placeholder: '每天都在进步...'}
+            ];
+            var currentQuestionIndex = 0;
+            var todayReviewAnswers = [];
+
+            window.checkDailyReview = function() {
+                var now = new Date();
+                var hour = now.getHours();
+                // 下午5点后（17:00）
+                if(hour >= 17) {
+                    var today = now.toISOString().split('T')[0];
+                    var lastReviewDate = localStorage.getItem('dailyReviewDate');
+                    // 今天还没复盘
+                    if(lastReviewDate !== today) {
+                        // 显示复盘引导
+                        setTimeout(function(){
+                            showDailyReview();
+                        }, 2000);
+                    }
+                }
+            };
+
+            window.showDailyReview = function() {
+                currentQuestionIndex = 0;
+                todayReviewAnswers = [];
+                renderDailyReviewQuestion();
+                openAncientModal('dailyReviewModal');
+            };
+
+            function renderDailyReviewQuestion() {
+                var body = document.getElementById('dailyReviewBody');
+                if(currentQuestionIndex >= 2 || currentQuestionIndex >= dailyReviewQuestions.length) {
+                    // 复盘完成
+                    var today = new Date().toISOString().split('T')[0];
+                    localStorage.setItem('dailyReviewDate', today);
+                    localStorage.setItem('dailyReview_' + today, JSON.stringify(todayReviewAnswers));
+
+                    body.innerHTML = '<div style="text-align:center;padding:20px;">' +
+                        '<div style="font-size:48px;margin-bottom:16px;">✨</div>' +
+                        '<div style="font-size:18px;color:#5D4037;font-weight:600;margin-bottom:8px;">今日复盘已完成！</div>' +
+                        '<div style="font-size:13px;color:#8D6E63;">记录是对生活的尊重</div>' +
+                        '<button class="btn-ripple btn-active" onclick="closeAncientModal(\'dailyReviewModal\')" style="margin-top:20px;padding:12px 30px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:20px;color:white;font-size:14px;font-weight:600;cursor:pointer;">太棒了</button>' +
+                        '</div>';
+                    return;
+                }
+
+                var q = dailyReviewQuestions[currentQuestionIndex];
+                body.innerHTML = '<div style="margin-bottom:20px;">' +
+                    '<div style="font-size:14px;color:#8D6E63;margin-bottom:8px;">问题 ' + (currentQuestionIndex + 1) + '/2</div>' +
+                    '<div style="font-size:17px;color:#5D4037;font-weight:600;">' + q.q + '</div>' +
+                    '</div>' +
+                    '<textarea id="reviewAnswer" rows="4" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;resize:none;box-sizing:border-box;margin-bottom:16px;" placeholder="' + q.placeholder + '"></textarea>' +
+                    '<div style="display:flex;gap:10px;">' +
+                    '<button class="btn-ripple btn-active" onclick="skipDailyReview()" style="flex:1;padding:12px;background:#F5F5F5;border:none;border-radius:10px;color:#8D6E63;font-size:14px;cursor:pointer;">跳过</button>' +
+                    '<button class="btn-ripple btn-active" onclick="saveDailyReviewAnswer()" style="flex:2;padding:12px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">保存</button>' +
+                    '</div>';
+            }
+
+            window.saveDailyReviewAnswer = function() {
+                var answer = document.getElementById('reviewAnswer').value.trim();
+                if(answer) {
+                    todayReviewAnswers.push({
+                        question: dailyReviewQuestions[currentQuestionIndex].q,
+                        answer: answer
+                    });
+                }
+                currentQuestionIndex++;
+                renderDailyReviewQuestion();
+            };
+
+            window.skipDailyReview = function() {
+                currentQuestionIndex++;
+                renderDailyReviewQuestion();
+            };
+
+            // 检查是否需要显示每日复盘
+            window.checkDailyReview();
 
             // 显示添加Flag弹窗
             window.showAddFlagModal = function() {

@@ -760,11 +760,14 @@ window.openAncientModal = window.openAncientModal || function(modalId) {
 };
 // 延迟设置菜单点击事件，等待函数定义完成
 window.addEventListener('load', function() {
+    console.log('Setting up menu events...');
     setTimeout(function() {
         // 悬浮菜单按钮
         var floatBtn = document.getElementById('floatMenuBtn');
+        console.log('floatBtn:', floatBtn);
         if(floatBtn) {
             floatBtn.addEventListener('click', function() {
+                console.log('Menu button clicked');
                 var menu = document.getElementById('floatMenu');
                 var overlay = document.getElementById('floatMenuOverlay');
                 menu.classList.toggle('show');
@@ -783,6 +786,7 @@ window.addEventListener('load', function() {
         document.querySelectorAll('.float-menu-item').forEach(function(item) {
             item.addEventListener('click', function() {
                 var action = this.getAttribute('data-action');
+                console.log('Menu item clicked:', action);
                 var menu = document.getElementById('floatMenu');
                 var overlay = document.getElementById('floatMenuOverlay');
                 menu.classList.remove('show');

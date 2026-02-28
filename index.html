@@ -758,6 +758,15 @@ window.openAncientModal = window.openAncientModal || function(modalId) {
         setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };
+// 预定义showDailyReview - 简单版本
+window.showDailyReview = function() {
+    console.log('Simple showDailyReview called');
+    var modal = document.getElementById('dailyReviewModal');
+    if(modal) {
+        modal.style.display = 'flex';
+        setTimeout(function(){modal.classList.add('show');}, 10);
+    }
+};
 // 延迟设置菜单点击事件，等待函数定义完成
 window.addEventListener('load', function() {
     console.log('Setting up menu events...');
@@ -4415,18 +4424,6 @@ function initFlagApp(){
             window.showAddMemberModal = showAddMemberModal;
             console.log('Functions exposed to window');
         })();
-
-    // 备用函数定义
-    window.showDailyReviewBackup = function() {
-        console.log('Backup showDailyReview called');
-        var modal = document.getElementById('dailyReviewModal');
-        if(modal) {
-            modal.style.display = 'flex';
-            modal.classList.add('show');
-        }
-    };
-    // 立即覆盖
-    window.showDailyReview = window.showDailyReviewBackup;
 
     </script>
 </body>

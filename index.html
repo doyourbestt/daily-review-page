@@ -740,23 +740,23 @@ min-height: 44px;
 <div class="float-menu-overlay" id="floatMenuOverlay" onclick="toggleFloatMenu()"></div>
 <div class="float-menu" id="floatMenu">
     <div class="float-menu-title">⚡ 快捷功能</div>
-    <div class="float-menu-item" onclick="showMyMemoryCard()">
+    <div class="float-menu-item btn-ripple" onclick="showMyMemoryCard()">
         <span class="icon">📜</span>
         <span>我的纪念册</span>
     </div>
-    <div class="float-menu-item" onclick="showAllMemoryCards()">
+    <div class="float-menu-item btn-ripple" onclick="showAllMemoryCards()">
         <span class="icon">👥</span>
         <span>查看全部</span>
     </div>
-    <div class="float-menu-item" onclick="showWeekReport();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" onclick="showWeekReport();toggleFloatMenu();">
         <span class="icon">📊</span>
         <span>本周周报</span>
     </div>
-    <div class="float-menu-item" id="adminMenuItem1" style="display:none;" onclick="showAddFlagModal();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" id="adminMenuItem1" style="display:none;" onclick="showAddFlagModal();toggleFloatMenu();">
         <span class="icon">🎯</span>
         <span>添加Flag</span>
     </div>
-    <div class="float-menu-item" id="adminMenuItem2" style="display:none;" onclick="showAddMemberModal();toggleFloatMenu();">
+    <div class="float-menu-item btn-ripple" id="adminMenuItem2" style="display:none;" onclick="showAddMemberModal();toggleFloatMenu();">
         <span class="icon">👤</span>
         <span>添加成员</span>
     </div>
@@ -1354,6 +1354,54 @@ function initFlagApp(){
     .float-menu-item:hover {background: rgba(255,255,255,0.15);}
     .float-menu-item .icon {font-size: 18px;}
 
+    /* ===== 动画效果 ===== */
+    /* 弹跳动画 keyframes */
+    @keyframes bounceIn {0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.05)}70%{transform:scale(0.9)}100%{transform:scale(1);opacity:1}}
+    @keyframes bounceOut {0%{transform:scale(1);opacity:1}100%{transform:scale(0.3);opacity:0}}
+    @keyframes pulse {0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    @keyframes shake {0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+    @keyframes slideUp {0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+    @keyframes ripple {0%{transform:scale(0);opacity:0.5}100%{transform:scale(4);opacity:0}}
+
+    /* 弹跳显示 */
+    .bounce-show {animation: bounceIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);}
+    .bounce-hide {animation: bounceOut 0.3s ease-in;}
+
+    /* 按钮点击效果 */
+    .btn-ripple {position:relative;overflow:hidden;}
+    .btn-ripple .ripple {
+        position:absolute;background:rgba(255,255,255,0.4);border-radius:50%;
+        transform:scale(0);animation:ripple 0.6s linear;pointer-events:none;
+    }
+    .btn-active:active {transform:scale(0.95);}
+
+    /* 古风弹窗统一样式 */
+    .ancient-modal {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s;}
+    .ancient-modal.show {opacity:1;visibility:visible;}
+    .ancient-modal.show .ancient-modal-content {transform:scale(1);}
+    .ancient-modal-content {
+        width:85%;max-width:340px;background:linear-gradient(180deg,#f9f3e8,#f5ecd8);
+        border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.4);
+        position:relative;overflow:hidden;transform:scale(0.8);transition:transform 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+    }
+    .ancient-modal-content::before,.ancient-modal-content::after {
+        content:'';position:absolute;top:0;bottom:0;width:16px;
+        background:linear-gradient(90deg,#654321,#8B4513);
+    }
+    .ancient-modal-content::before{left:0;}
+    .ancient-modal-content::after{right:0;}
+    .ancient-modal-header {
+        padding:14px 30px;background:linear-gradient(90deg,#8B4513,#A0522D,#8B4513);
+        color:#fff;display:flex;justify-content:space-between;align-items:center;
+    }
+    .ancient-modal-title {font-size:16px;font-weight:600;letter-spacing:2px;}
+    .ancient-modal-close {
+        width:26px;height:26px;border:none;background:rgba(255,255,255,0.2);
+        border-radius:50%;color:#fff;font-size:16px;cursor:pointer;transition:all 0.2s;
+    }
+    .ancient-modal-close:hover {background:rgba(255,255,255,0.3);transform:rotate(90deg);}
+    .ancient-modal-body {padding:20px;}
+
     /* 纪念卡片 - 中国风古韵 */
     .commemorative-card-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10010; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.4s;}
     .commemorative-card-overlay.show {opacity: 1; visibility: visible;}
@@ -1571,7 +1619,7 @@ function initFlagApp(){
                 <span class="stat-badge">📅 <span id="myProgress">0%</span></span>
             </div>
             <div class="flags-list" id="flagsList"></div>
-            <button class="add-flag-btn" id="addFlagBtn" onclick="document.getElementById('flagModal').style.display='flex';document.getElementById('flagModal').classList.add('active');" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:12px;color:white;font-size:14px;font-weight:600;cursor:pointer;position:relative;z-index:100;">+ 添加Flag</button>
+            <button class="add-flag-btn btn-ripple btn-active" id="addFlagBtn" onclick="openAncientModal('flagModal')" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;position:relative;z-index:100;">+ 添加Flag</button>
         </div>
     </div>
 
@@ -1590,34 +1638,34 @@ function initFlagApp(){
     </div>
 
     <!-- 添加成员Modal -->
-    <div class="flag-modal" id="memberModal" style="display:none;">
-        <div class="flag-modal-content">
-            <div class="flag-modal-header">
-                <span class="flag-modal-title">添加成员</span>
-                <button class="flag-modal-close" id="memberModalClose" onclick="document.getElementById('memberModal').style.display='none';document.getElementById('memberModal').classList.remove('active');" style="width:24px;height:24px;border:none;background:rgba(255,255,255,0.2);border-radius:50%;color:white;font-size:14px;cursor:pointer;">×</button>
+    <div class="ancient-modal" id="memberModal" style="display:none;">
+        <div class="ancient-modal-content">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">添加成员</span>
+                <button class="ancient-modal-close" id="memberModalClose" onclick="closeAncientModal('memberModal')">×</button>
             </div>
-            <div class="flag-modal-body">
-                <input type="text" class="flag-input member-name-input" id="memberNameInput" placeholder="输入成员名字">
-                <button class="flag-save-btn" id="memberSaveBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;">添加</button>
-                <script>document.getElementById('memberSaveBtn').onclick=function(){var n=document.getElementById('memberNameInput').value.trim();if(!n){alert('请输入名字');return;}var ms=JSON.parse(localStorage.getItem('daily_members')||'["me"]');if(ms.includes(n)){alert('已存在');return;}ms.push(n);localStorage.setItem('daily_members',JSON.stringify(ms));var fd=JSON.parse(localStorage.getItem('daily_flags_v2')||'{}');fd[n]=[];localStorage.setItem('daily_flags_v2',JSON.stringify(fd));location.reload();};</script>
+            <div class="ancient-modal-body">
+                <input type="text" class="flag-input member-name-input" id="memberNameInput" placeholder="输入成员名字" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
+                <button class="flag-save-btn btn-ripple btn-active" id="memberSaveBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;">添加</button>
+                <script>document.getElementById('memberSaveBtn').onclick=function(){var n=document.getElementById('memberNameInput').value.trim();if(!n){alert('请输入名字');return;}var ms=JSON.parse(localStorage.getItem('daily_members')||'["me"]');if(ms.includes(n)){alert('已存在');return;}ms.push(n);localStorage.setItem('daily_members',JSON.stringify(ms));var fd=JSON.parse(localStorage.getItem('daily_flags_v2')||'{}');fd[n]=[];localStorage.setItem('daily_flags_v2',JSON.stringify(fd));closeAncientModal('memberModal');setTimeout(()=>location.reload(),300);};</script>
             </div>
         </div>
     </div>
 
     <!-- Flag Modal -->
-    <div class="flag-modal" id="flagModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;">
-        <div style="width:85%;max-width:320px;background:#fff;border-radius:16px;overflow:hidden;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;">
-                <span style="font-size:15px;font-weight:600;">添加Flag</span>
-                <button onclick="document.getElementById('flagModal').style.display='none'" style="width:24px;height:24px;border:none;background:rgba(255,255,255,0.2);border-radius:50%;color:white;font-size:14px;cursor:pointer;">×</button>
+    <div class="ancient-modal" id="flagModal" style="display:none;">
+        <div class="ancient-modal-content">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">添加Flag</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('flagModal')">×</button>
             </div>
-            <div style="padding:16px;">
-                <input type="text" id="flagTitle" placeholder="输入Flag名称，如：每天运动" style="width:100%;padding:12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
-                <div style="display:flex;gap:8px;margin-bottom:10px;">
-                    <input type="number" id="flagTarget" placeholder="目标数量" style="flex:1;padding:12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;box-sizing:border-box;">
-                    <input type="text" id="flagUnit" placeholder="单位" style="flex:1;padding:12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+            <div class="ancient-modal-body">
+                <input type="text" id="flagTitle" placeholder="输入Flag名称，如：每天运动" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <input type="number" id="flagTarget" placeholder="目标数量" style="flex:1;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;box-sizing:border-box;">
+                    <input type="text" id="flagUnit" placeholder="单位" style="flex:1;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;box-sizing:border-box;">
                 </div>
-                <button id="flagSaveBtn" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">保存</button>
+                <button id="flagSaveBtn" class="btn-ripple btn-active" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;">保存</button>
             </div>
         </div>
     </div>
@@ -1642,30 +1690,30 @@ function initFlagApp(){
     </script>
 
     <!-- Complete Flag Modal -->
-    <div class="flag-modal" id="completeFlagModal" style="display:none;">
-        <div class="flag-modal-content flag-modal-small">
-            <div class="flag-modal-header">
-                <span class="flag-modal-title">完成Flag</span>
-                <button class="flag-modal-close" id="completeModalClose" onclick="document.getElementById('completeFlagModal').style.display='none';document.getElementById('completeFlagModal').classList.remove('active');">×</button>
+    <div class="ancient-modal" id="completeFlagModal" style="display:none;">
+        <div class="ancient-modal-content">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">完成Flag</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('completeFlagModal')">×</button>
             </div>
-            <div class="flag-modal-body">
-                <p class="complete-flag-title" id="completeFlagTitle"></p>
-                <p class="complete-flag-hint">微习惯：完成一点点也是成功！</p>
-                <input type="number" class="flag-input" id="actualValue" placeholder="实际完成数量">
-                <input type="text" class="flag-input" id="actualNote" placeholder="备注（可选）">
-                <button class="flag-save-btn" id="completeSaveBtn">确认完成</button>
+            <div class="ancient-modal-body">
+                <p class="complete-flag-title" id="completeFlagTitle" style="font-size:16px;font-weight:600;color:#5D4037;margin-bottom:8px;text-align:center;"></p>
+                <p class="complete-flag-hint" style="font-size:12px;color:#8D6E63;margin-bottom:16px;text-align:center;">微习惯：完成一点点也是成功！</p>
+                <input type="number" class="flag-input" id="actualValue" placeholder="实际完成数量" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;margin-bottom:10px;box-sizing:border-box;">
+                <input type="text" class="flag-input" id="actualNote" placeholder="备注（可选）" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
+                <button class="flag-save-btn btn-ripple btn-active" id="completeSaveBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;">确认完成</button>
             </div>
         </div>
     </div>
 
     <!-- 周报弹窗 -->
-    <div class="flag-modal" id="weekReportModal" style="display:none;">
-        <div class="flag-modal-content" style="max-width:400px;">
-            <div class="flag-modal-header">
-                <span class="flag-modal-title">📊 本周总结</span>
-                <button class="flag-modal-close" onclick="document.getElementById('weekReportModal').style.display='none';document.getElementById('weekReportModal').classList.remove('active');">×</button>
+    <div class="ancient-modal" id="weekReportModal" style="display:none;">
+        <div class="ancient-modal-content" style="max-width:400px;">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">📊 本周总结</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('weekReportModal')">×</button>
             </div>
-            <div class="flag-modal-body" id="weekReportContent">
+            <div class="ancient-modal-body" id="weekReportContent">
                 <!-- 周报内容将在这里动态生成 -->
             </div>
         </div>
@@ -1709,18 +1757,18 @@ function initFlagApp(){
     </div>
 
     <!-- 批量导入弹窗 -->
-    <div class="flag-modal" id="batchImportModal" style="display:none;">
-        <div class="flag-modal-content" style="max-width:420px;">
-            <div class="flag-modal-header">
-                <span class="flag-modal-title">📝 批量导入Flag</span>
-                <button class="flag-modal-close" onclick="document.getElementById('batchImportModal').style.display='none';document.getElementById('batchImportModal').classList.remove('active');">×</button>
+    <div class="ancient-modal" id="batchImportModal" style="display:none;">
+        <div class="ancient-modal-content" style="max-width:420px;">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">📝 批量导入Flag</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('batchImportModal')">×</button>
             </div>
-            <div class="flag-modal-body">
-                <div style="font-size:12px;color:#888;margin-bottom:10px;">格式：名字:目标1,目标2</div>
-                <textarea id="batchImportInput" style="width:100%;height:150px;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:13px;resize:none;box-sizing:border-box;" placeholder="张三:每天运动30分钟,每天读书20页
+            <div class="ancient-modal-body">
+                <div style="font-size:12px;color:#8D6E63;margin-bottom:10px;">格式：名字:目标1,目标2</div>
+                <textarea id="batchImportInput" style="width:100%;height:150px;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;resize:none;box-sizing:border-box;background:#fff;" placeholder="张三:每天运动30分钟,每天读书20页
 李四:每天早起,每天喝水2升
 自己:每天冥想10分钟"></textarea>
-                <button class="flag-save-btn" id="batchImportConfirm" style="margin-top:12px;">确认导入</button>
+                <button class="flag-save-btn btn-ripple btn-active" id="batchImportConfirm" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;">确认导入</button>
             </div>
         </div>
     </div>
@@ -3060,9 +3108,8 @@ function initFlagApp(){
 
                 const flags = getCurrentFlags();
                 if (flags.length === 0) {
-                    content.innerHTML = '<p style="text-align:center;color:#666;">暂无Flag数据</p>';
-                    modal.style.display = 'flex';
-                    modal.classList.add('active');
+                    content.innerHTML = '<p style="text-align:center;color:#8D6E63;">暂无Flag数据</p>';
+                    openAncientModal('weekReportModal');
                     return;
                 }
 
@@ -3155,8 +3202,7 @@ function initFlagApp(){
                 html += '</div>';
 
                 content.innerHTML = html;
-                modal.style.display = 'flex';
-                modal.classList.add('active');
+                openAncientModal('weekReportModal');
             }
 
             // 保存数据
@@ -3768,9 +3814,7 @@ function initFlagApp(){
                     document.getElementById('completeFlagTitle').textContent = flag.title + ' - 目标: ' + flag.target + (flag.unit || '');
                     document.getElementById('actualValue').value = flag.target;
                     document.getElementById('actualNote').value = '';
-                    var cm = document.getElementById('completeFlagModal');
-                    cm.style.display = 'flex';
-                    cm.classList.add('active');
+                    openAncientModal('completeFlagModal');
                 }
             };
 
@@ -3796,9 +3840,7 @@ function initFlagApp(){
                 }
 
                 // 关闭弹窗
-                var cm = document.getElementById('completeFlagModal');
-                cm.style.display = 'none';
-                cm.classList.remove('active');
+                closeAncientModal('completeFlagModal');
 
                 setCurrentFlags(flags);
                 saveData();
@@ -3879,9 +3921,7 @@ function initFlagApp(){
                 var mm = document.getElementById('memberModal');
                 mm.style.display = 'none';
                 mm.classList.remove('active');
-                var cm = document.getElementById('completeFlagModal');
-                cm.style.display = 'none';
-                cm.classList.remove('active');
+                closeAncientModal('completeFlagModal');
                 currentEditingFlag = null;
             }
 
@@ -4097,6 +4137,40 @@ function initFlagApp(){
                 overlay.classList.toggle('show');
             };
 
+            // 关闭古风弹窗
+            window.closeAncientModal = function(modalId) {
+                var modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.remove('show');
+                    setTimeout(function(){modal.style.display = 'none';}, 300);
+                }
+            };
+
+            // 打开古风弹窗
+            window.openAncientModal = function(modalId) {
+                var modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.style.display = 'flex';
+                    setTimeout(function(){modal.classList.add('show');}, 10);
+                }
+            };
+
+            // 波纹效果
+            document.addEventListener('click', function(e) {
+                if(e.target.classList.contains('btn-ripple')) {
+                    var btn = e.target;
+                    var ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    var rect = btn.getBoundingClientRect();
+                    var size = Math.max(rect.width, rect.height);
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+                    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+                    btn.appendChild(ripple);
+                    setTimeout(function(){ripple.remove();}, 600);
+                }
+            });
+
             window.showMyMemoryCard = function() {
                 toggleFloatMenu();
                 var members = JSON.parse(localStorage.getItem('daily_members') || '["me"]');
@@ -4114,20 +4188,12 @@ function initFlagApp(){
 
             // 显示添加Flag弹窗
             window.showAddFlagModal = function() {
-                var modal = document.getElementById('flagModal');
-                if(modal) {
-                    modal.style.display = 'flex';
-                    modal.classList.add('active');
-                }
+                openAncientModal('flagModal');
             };
 
             // 显示添加成员弹窗
             window.showAddMemberModal = function() {
-                var modal = document.getElementById('memberModal');
-                if(modal) {
-                    modal.style.display = 'flex';
-                    modal.classList.add('active');
-                }
+                openAncientModal('memberModal');
             };
 
             // 管理员菜单项

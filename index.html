@@ -794,7 +794,10 @@ window.addEventListener('load', function() {
                 setTimeout(function() {
                     switch(action) {
                         case 'dailyReview':
-                            if(window.showDailyReview) window.showDailyReview();
+                            console.log('Calling showDailyReview, function:', window.showDailyReview);
+                            if(window.showDailyReview) {
+                                window.showDailyReview();
+                            }
                             break;
                         case 'myMemory':
                             if(window.showMyMemoryCard) window.showMyMemoryCard();
@@ -4398,6 +4401,12 @@ function initFlagApp(){
             window.showWeekReport = showWeekReport;
             window.syncToCloud = syncToCloud;
             window.syncFromCloud = syncFromCloud;
+            window.showDailyReview = showDailyReview;
+            window.showMyMemoryCard = showMyMemoryCard;
+            window.showAllMemoryCards = showAllMemoryCards;
+            window.showAddFlagModal = showAddFlagModal;
+            window.showAddMemberModal = showAddMemberModal;
+            console.log('Functions exposed to window');
         })();
 
     </script>

@@ -1482,13 +1482,14 @@ function initFlagApp(){
     .btn-active:active {transform:scale(0.95);}
 
     /* 古风弹窗统一样式 */
-    .ancient-modal {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s;}
+    .ancient-modal {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s;overflow-y:auto;-webkit-overflow-scrolling:touch;}
     .ancient-modal.show {opacity:1;visibility:visible;}
     .ancient-modal.show .ancient-modal-content {transform:scale(1);}
     .ancient-modal-content {
-        width:85%;max-width:340px;background:linear-gradient(180deg,#f9f3e8,#f5ecd8);
+        width:85%;max-width:340px;max-height:80vh;background:linear-gradient(180deg,#f9f3e8,#f5ecd8);
         border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.4);
         position:relative;overflow:hidden;transform:scale(0.8);transition:transform 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+        margin:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
     }
     .ancient-modal-content::before,.ancient-modal-content::after {
         content:'';position:absolute;top:0;bottom:0;width:16px;

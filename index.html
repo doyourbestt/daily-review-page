@@ -751,17 +751,11 @@ window.closeAncientModal = window.closeAncientModal || function(modalId) {
         modal.classList.remove('show');
     }
 };
-window.showDailyReview = window.showDailyReview || function() { console.log('Loading...'); };
-window.showWeekReport = window.showWeekReport || function() { console.log('Loading...'); };
-window.showMyMemoryCard = window.showMyMemoryCard || function() { console.log('Loading...'); };
-window.showAllMemoryCards = window.showAllMemoryCards || function() { console.log('Loading...'); };
-window.showAddFlagModal = window.showAddFlagModal || function() { console.log('Loading...'); };
-window.showAddMemberModal = window.showAddMemberModal || function() { console.log('Loading...'); };
 window.openAncientModal = window.openAncientModal || function(modalId) {
     var modal = document.getElementById(modalId);
     if(modal) {
         modal.style.display = 'flex';
-        modal.classList.add('show');
+        setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };
 </script>
@@ -4234,6 +4228,7 @@ function initFlagApp(){
             };
 
             // ===== 每日复盘引导功能 =====
+            console.log('Loading daily review functions...');
             var dailyReviewQuestions = [
                 {q: '今天最有成就感的一件事是什么？', placeholder: '写下让你感到骄傲的事...'},
                 {q: '今天有什么可以做得更好？', placeholder: '思考一下改进空间...'},

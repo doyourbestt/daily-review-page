@@ -4315,6 +4315,8 @@ function initFlagApp(){
             };
 
             window.showDailyReview = function() {
+                console.log('Real showDailyReview called!');
+                alert('今日复盘功能正在加载...');
                 currentQuestionIndex = 0;
                 todayReviewAnswers = [];
                 renderDailyReviewQuestion();

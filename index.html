@@ -3553,9 +3553,12 @@ function initFlagApp(){
                     if(!file) return;
                     var reader = new FileReader();
                     reader.onload = function(event){
-                        savedMonthStarAvatars[name] = event.target.result;
-                        localStorage.setItem('monthStarAvatars', JSON.stringify(savedMonthStarAvatars));
-                        window.showMonthSummary();
+                        // 保存到localStorage
+                        var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                        avatars[name] = event.target.result;
+                        localStorage.setItem('monthStarAvatars', JSON.stringify(avatars));
+                        // 刷新页面以显示新头像
+                        location.reload();
                     };
                     reader.readAsDataURL(file);
                 };

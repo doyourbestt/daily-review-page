@@ -3440,7 +3440,8 @@ function initFlagApp(){
                 detailHtml += '.content{font-size:14px;color:#555;line-height:1.8;background:#f8f9fa;padding:14px;border-radius:10px;border-left:3px solid #667eea;}';
                 detailHtml += '.story{font-size:14px;color:#555;line-height:1.8;background:#fffbf0;padding:14px;border-radius:10px;border-left:3px solid #f5a623;}';
                 detailHtml += '.quote{font-size:14px;color:#666;font-style:italic;background:#f0f0f0;padding:14px;border-radius:10px;text-align:center;}';
-                detailHtml += '.edit-btn{position:fixed;top:20px;right:20px;padding:10px 20px;background:#fff;color:#667eea;border:none;border-radius:20px;font-size:14px;cursor:pointer;box-shadow:0 2px10px rgba(0,0,0,0.2);}';
+                detailHtml += '.edit-btn{position:fixed;top:20px;right:80px;padding:10px 20px;background:#fff;color:#667eea;border:none;border-radius:20px;font-size:14px;cursor:pointer;box-shadow:0 2px10px rgba(0,0,0,0.2);z-index:1000;}';
+                detailHtml += '.close-btn{position:fixed;top:20px;right:20px;width:36px;height:36px;background:#fff;color:#333;border:none;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 2px10px rgba(0,0,0,0.2);z-index:1000;display:flex;align-items:center;justify-content:center;}';
                 detailHtml += '@media(max-width:600px){body{padding:10px;}.container{padding:16px;}}';
                 detailHtml += '</style></head><body>';
                 detailHtml += '<div class="container">';
@@ -3455,6 +3456,7 @@ function initFlagApp(){
                 if(isAdmin){
                     detailHtml += '<button class="edit-btn" onclick="editDetail()">编辑</button>';
                 }
+                detailHtml += '<button class="close-btn" onclick="window.close()">×</button>';
                 detailHtml += '</div>';
 
                 // 2月立的Flag

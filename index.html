@@ -3456,7 +3456,7 @@ function initFlagApp(){
                 if(isAdmin){
                     detailHtml += '<button class="edit-btn" onclick="editDetail()">编辑</button>';
                 }
-                detailHtml += '<button class="close-btn" onclick="window.close()">×</button>';
+                detailHtml += '<button class="close-btn" onclick="if(window.opener){window.opener.focus();}window.close();">×</button>';
                 detailHtml += '</div>';
 
                 // 2月立的Flag

@@ -3397,12 +3397,13 @@ function initFlagApp(){
                 monthSummaryData.forEach(function(item, idx){
                     var avatarImg = savedMonthStarAvatars[item.name];
                     var avatarStyle = isAdmin ? 'cursor:pointer;' : '';
+                    var uploadFunc = isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '';
                     html += '<div style="background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px8pxrgba(0,0,0,0.08);">';
                     html += '<div style="display:flex;align-items:center;margin-bottom:10px;">';
                     if(avatarImg){
-                        html += '<img id="avatar-' + idx + '" src="' + avatarImg + '" onclick="' + (isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '') + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击更换头像' : '') + '">';
+                        html += '<img id="avatar-' + idx + '" src="' + avatarImg + '" onclick="' + uploadFunc + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击更换头像' : '') + '">';
                     }else{
-                        html += '<div id="avatar-' + idx + '" onclick="' + (isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '') + '" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击上传头像' : '') + '">' + item.name.charAt(0) + '</div>';
+                        html += '<div id="avatar-' + idx + '" onclick="' + uploadFunc + '" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击上传头像' : '') + '">' + item.name.charAt(0) + '</div>';
                     }
                     html += '<div style="flex:1;"><div style="font-weight:600;color:#333;font-size:15px;">' + item.name + '</div><div style="font-size:12px;color:#888;">' + item.count + '次发言 · ' + item.title + '</div></div>';
                     html += '<button onclick="showMonthStarDetail(' + idx + ')" style="padding:6px 14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:15px;font-size:12px;cursor:pointer;">详情</button>';

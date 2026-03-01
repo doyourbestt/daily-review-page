@@ -3389,12 +3389,19 @@ function initFlagApp(){
             // 加载保存的头像
             var savedMonthStarAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
 
-            window.showMonthSummary = function(){
+            window.showMonthSummary = async function(){
                 var modal = document.getElementById('monthSummaryModal');
                 var content = document.getElementById('monthSummaryContent');
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
-                // 每次打开都重新读取头像数据
-                var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                // 从云端加载头像
+                var avatars = await loadMonthStarAvatarsFromCloud();
+                // 同时也读取本地缓存作为备用
+                var localAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                // 合并两者，云端优先
+                Object.keys(localAvatars).forEach(function(key) {
+                    if(!avatars[key]) avatars[key] = localAvatars[key];
+                });
+
                 var html = '<div style="padding:10px;">';
                 monthSummaryData.forEach(function(item, idx){
                     var avatarImg = avatars[item.name];
@@ -3431,13 +3438,17 @@ function initFlagApp(){
             };
 
             // 显示月度之星详情（弹窗形式）
-            window.showMonthStarDetail = function(idx){
+            window.showMonthStarDetail = async function(idx){
                 var item = monthSummaryData[idx];
                 var detail = monthStarDetails[item.name] || {};
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
 
-                // 每次都重新读取头像数据
-                var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                // 从云端加载头像
+                var avatars = await loadMonthStarAvatarsFromCloud();
+                var localAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                Object.keys(localAvatars).forEach(function(key) {
+                    if(!avatars[key]) avatars[key] = localAvatars[key];
+                });
                 var avatarImg = avatars[item.name];
                 var avatarHtml = avatarImg
                     ? '<img src="' + avatarImg + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">'
@@ -3543,29 +3554,89 @@ function initFlagApp(){
             var savedDetails = localStorage.getItem('monthStarDetails');
             var monthStarDetails = savedDetails ? JSON.parse(savedDetails) : defaultMonthStarDetails;
 
-            // 上传月度之星头像
-            window.uploadMonthStarAvatar = function(name, idx){
+            // 初始化Supabase
+            const SUPABASE_URL = 'https://vieidfxeouhoddaxqzvc.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_bYG23_onWxKfpUddoPJHcQ_q5C628wZ';
+            let supabaseClient = null;
+
+            async function getSupabase() {
+                if (!supabaseClient && window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
+                return supabaseClient;
+            }
+
+            // 上传月度之星头像到云端
+            window.uploadMonthStarAvatar = async function(name, idx){
                 var input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'image/*';
-                input.onchange = function(e){
+                input.onchange = async function(e){
                     var file = e.target.files[0];
                     if(!file) return;
-                    var reader = new FileReader();
-                    reader.onload = function(event){
-                        // 保存到localStorage
-                        var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
-                        avatars[name] = event.target.result;
-                        localStorage.setItem('monthStarAvatars', JSON.stringify(avatars));
-                        // 显示保存成功的提示
-                        alert('头像上传成功！');
-                        // 刷新页面以显示新头像
-                        location.reload();
-                    };
-                    reader.readAsDataURL(file);
+
+                    try {
+                        var sb = await getSupabase();
+                        if(!sb) {
+                            alert('云存储未初始化');
+                            return;
+                        }
+
+                        // 使用base64方式上传
+                        var reader = new FileReader();
+                        reader.onload = async function(event){
+                            var base64 = event.target.result;
+                            // 存储到Supabase
+                            var { data, error } = await sb
+                                .from('month_star_avatars')
+                                .upsert({ name: name, avatar: base64, updated_at: new Date().toISOString() })
+                                .select();
+
+                            if (error) {
+                                console.error('上传失败:', error);
+                                alert('上传失败: ' + error.message);
+                                return;
+                            }
+
+                            alert('头像上传成功！');
+                            location.reload();
+                        };
+                        reader.readAsDataURL(file);
+                    } catch(err) {
+                        console.error(err);
+                        alert('上传出错');
+                    }
                 };
                 input.click();
             };
+
+            // 从云端读取月度之星头像
+            async function loadMonthStarAvatarsFromCloud() {
+                try {
+                    var sb = await getSupabase();
+                    if(!sb) return {};
+
+                    var { data, error } = await sb
+                        .from('month_star_avatars')
+                        .select('name, avatar');
+
+                    if (error) {
+                        console.log('读取头像失败:', error);
+                        return {};
+                    }
+
+                    var avatars = {};
+                    if (data) {
+                        data.forEach(function(item) {
+                            avatars[item.name] = item.avatar;
+                        });
+                    }
+                    return avatars;
+                } catch(err) {
+                    console.error(err);
+                    return {};
+                }
+            }
 
             // 保存数据
             function saveData() {

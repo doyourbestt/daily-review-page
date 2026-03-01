@@ -3397,7 +3397,7 @@ function initFlagApp(){
             ];
 
             // 加载保存的头像
-            var savedMonthStarAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+            var savedMonthStarAvatars = JSON.parse(localStorage.getItem(MONTH_STAR_AVATARS_KEY) || '{}');
 
             window.showMonthSummary = function(){
                 var modal = document.getElementById('monthSummaryModal');

@@ -3393,9 +3393,11 @@ function initFlagApp(){
                 var modal = document.getElementById('monthSummaryModal');
                 var content = document.getElementById('monthSummaryContent');
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
+                // 每次打开都重新读取头像数据
+                var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
                 var html = '<div style="padding:10px;">';
                 monthSummaryData.forEach(function(item, idx){
-                    var avatarImg = savedMonthStarAvatars[item.name];
+                    var avatarImg = avatars[item.name];
                     var avatarStyle = isAdmin ? 'cursor:pointer;' : '';
                     var uploadFunc = isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '';
                     html += '<div style="background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px8pxrgba(0,0,0,0.08);">';
@@ -3434,8 +3436,9 @@ function initFlagApp(){
                 var detail = monthStarDetails[item.name] || {};
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
 
-                // 构建详情HTML
-                var avatarImg = savedMonthStarAvatars[item.name];
+                // 每次都重新读取头像数据
+                var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+                var avatarImg = avatars[item.name];
                 var avatarHtml = avatarImg
                     ? '<img src="' + avatarImg + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">'
                     : '<div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:24px;font-weight:bold;display:flex;align-items:center;justify-content:center;">' + item.name.charAt(0) + '</div>';

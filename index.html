@@ -3365,7 +3365,7 @@ function initFlagApp(){
             ];
 
             // 加载保存的头像
-            var savedAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
+            var savedMonthStarAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
 
             window.showMonthSummary = function(){
                 var modal = document.getElementById('monthSummaryModal');
@@ -3373,11 +3373,15 @@ function initFlagApp(){
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
                 var html = '<div style="padding:10px;">';
                 monthSummaryData.forEach(function(item, idx){
-                    var avatar = savedAvatars[item.name] || item.name.charAt(0);
-                    var avatarStyle = isAdmin ? 'cursor:pointer;border:2px dashed #ccc;' : '';
-                    html += '<div style="background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px8px rgba(0,0,0,0.08);">';
+                    var avatarImg = savedMonthStarAvatars[item.name];
+                    var avatarStyle = isAdmin ? 'cursor:pointer;' : '';
+                    html += '<div style="background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px8pxrgba(0,0,0,0.08);">';
                     html += '<div style="display:flex;align-items:center;margin-bottom:10px;">';
-                    html += '<div id="avatar-' + idx + '" onclick="' + (isAdmin ? 'changeMonthAvatar(\'' + item.name + '\', ' + idx + ')' : '') + '" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;' + avatarStyle + '">' + avatar + '</div>';
+                    if(avatarImg){
+                        html += '<img id="avatar-' + idx + '" src="' + avatarImg + '" onclick="' + (isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '') + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击更换头像' : '') + '">';
+                    }else{
+                        html += '<div id="avatar-' + idx + '" onclick="' + (isAdmin ? 'uploadMonthStarAvatar(\'' + item.name + '\', ' + idx + ')' : '') + '" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;' + avatarStyle + '" title="' + (isAdmin ? '点击上传头像' : '') + '">' + item.name.charAt(0) + '</div>';
+                    }
                     html += '<div><div style="font-weight:600;color:#333;font-size:15px;">' + item.name + '</div><div style="font-size:12px;color:#888;">' + item.count + '次发言 · ' + item.title + '</div></div>';
                     html += '</div>';
                     html += '<div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:8px;"><strong style="color:#667eea;">做了什么：</strong>' + item.did + '</div>';
@@ -3387,20 +3391,29 @@ function initFlagApp(){
                 });
                 html += '</div>';
                 if(isAdmin){
-                    html += '<div style="text-align:center;padding:15px;color:#888;font-size:12px;">👆 点击头像可更改（管理员模式）</div>';
+                    html += '<div style="text-align:center;padding:15px;color:#888;font-size:12px;">👆 点击头像可上传图片（管理员模式）</div>';
                 }
                 content.innerHTML = html;
                 openAncientModal('monthSummaryModal');
             };
 
-            // 更改月度之星头像
-            window.changeMonthAvatar = function(name, idx){
-                var newAvatar = prompt('请输入新的头像（ emoji 或文字）：', savedAvatars[name] || name.charAt(0));
-                if(newAvatar !== null && newAvatar.trim() !== ''){
-                    savedAvatars[name] = newAvatar.trim();
-                    localStorage.setItem('monthStarAvatars', JSON.stringify(savedAvatars));
-                    window.showMonthSummary(); // 刷新显示
-                }
+            // 上传月度之星头像
+            window.uploadMonthStarAvatar = function(name, idx){
+                var input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e){
+                    var file = e.target.files[0];
+                    if(!file) return;
+                    var reader = new FileReader();
+                    reader.onload = function(event){
+                        savedMonthStarAvatars[name] = event.target.result;
+                        localStorage.setItem('monthStarAvatars', JSON.stringify(savedMonthStarAvatars));
+                        window.showMonthSummary();
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
             };
 
             // 保存数据

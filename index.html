@@ -3566,23 +3566,28 @@ function initFlagApp(){
             // 月度之星头像存储键
             const MONTH_STAR_AVATARS_KEY = 'month_star_avatars';
 
-            // 上传月度之星头像（复用现有同步机制）
-            window.uploadMonthStarAvatar = function(name, idx){
+            // 上传月度之星头像（自动同步到云端）
+            window.uploadMonthStarAvatar = async function(name, idx){
                 var input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'image/*';
-                input.onchange = function(e){
+                input.onchange = async function(e){
                     var file = e.target.files[0];
                     if(!file) return;
                     var reader = new FileReader();
-                    reader.onload = function(event){
+                    reader.onload = async function(event){
                         var imageData = event.target.result;
                         // 保存到localStorage
                         var monthAvatars = JSON.parse(localStorage.getItem(MONTH_STAR_AVATARS_KEY) || '{}');
                         monthAvatars[name] = imageData;
                         localStorage.setItem(MONTH_STAR_AVATARS_KEY, JSON.stringify(monthAvatars));
 
-                        alert('头像上传成功！');
+                        // 自动同步到云端
+                        if(supabase) {
+                            await syncToCloud();
+                        }
+
+                        alert('头像上传成功并已同步到云端！');
                         // 刷新页面
                         location.reload();
                     };

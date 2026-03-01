@@ -1851,6 +1851,13 @@ function initFlagApp(){
         </div>
     </div>
 
+    <!-- 月度之星详情弹窗 -->
+    <div class="ancient-modal" id="monthStarDetailModal" style="display:none;">
+        <div class="ancient-modal-content" id="monthStarDetailContent" style="max-width:600px;width:100%;height:100%;max-height:100vh;border-radius:0;margin:0;">
+            <!-- 详情内容 -->
+        </div>
+    </div>
+
     <!-- 纪念卡片弹窗 -->
     <div class="commemorative-card-overlay" id="commemorativeCard">
         <div class="commemorative-card">
@@ -3420,86 +3427,83 @@ function initFlagApp(){
                 openAncientModal('monthSummaryModal');
             };
 
-            // 显示月度之星详情（弹出新窗口）
+            // 显示月度之星详情（弹窗形式）
             window.showMonthStarDetail = function(idx){
                 var item = monthSummaryData[idx];
                 var detail = monthStarDetails[item.name] || {};
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
 
                 // 构建详情HTML
-                var detailHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + item.name + ' - 2月成长故事</title><style>';
-                detailHtml += 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:20px;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;}';
-                detailHtml += '.container{max-width:600px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 10px40px rgba(0,0,0,0.2);}';
-                detailHtml += '.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #f0f0f0;}';
-                detailHtml += '.avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:24px;font-weight:bold;display:flex;align-items:center;justify-content:center;}';
-                detailHtml += '.name{font-size:22px;font-weight:600;color:#333;}';
-                detailHtml += '.title{font-size:14px;color:#888;}';
-                detailHtml += '.section{margin-bottom:20px;}';
-                detailHtml += '.section-title{font-size:14px;font-weight:600;color:#667eea;margin-bottom:10px;display:flex;align-items:center;gap:6px;}';
-                detailHtml += '.section-title::before{content:"";width:4px;height:16px;background:linear-gradient(180deg,#667eea,#764ba2);border-radius:2px;}';
-                detailHtml += '.content{font-size:14px;color:#555;line-height:1.8;background:#f8f9fa;padding:14px;border-radius:10px;border-left:3px solid #667eea;}';
-                detailHtml += '.story{font-size:14px;color:#555;line-height:1.8;background:#fffbf0;padding:14px;border-radius:10px;border-left:3px solid #f5a623;}';
-                detailHtml += '.quote{font-size:14px;color:#666;font-style:italic;background:#f0f0f0;padding:14px;border-radius:10px;text-align:center;}';
-                detailHtml += '.edit-btn{position:fixed;top:20px;right:80px;padding:10px 20px;background:#fff;color:#667eea;border:none;border-radius:20px;font-size:14px;cursor:pointer;box-shadow:0 2px10px rgba(0,0,0,0.2);z-index:1000;}';
-                detailHtml += '.close-btn{position:fixed;top:20px;right:20px;width:36px;height:36px;background:#fff;color:#333;border:none;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 2px10px rgba(0,0,0,0.2);z-index:1000;display:flex;align-items:center;justify-content:center;}';
-                detailHtml += '@media(max-width:600px){body{padding:10px;}.container{padding:16px;}}';
-                detailHtml += '</style></head><body>';
-                detailHtml += '<div class="container">';
-                detailHtml += '<div class="header">';
                 var avatarImg = savedMonthStarAvatars[item.name];
-                if(avatarImg){
-                    detailHtml += '<img src="' + avatarImg + '" class="avatar" style="object-fit:cover;">';
-                }else{
-                    detailHtml += '<div class="avatar">' + item.name.charAt(0) + '</div>';
-                }
-                detailHtml += '<div><div class="name">' + item.name + '</div><div class="title">' + item.count + '次发言 · ' + item.title + '</div></div>';
-                if(isAdmin){
-                    detailHtml += '<button class="edit-btn" onclick="editDetail()">编辑</button>';
-                }
-                detailHtml += '<button class="close-btn" onclick="if(window.opener){window.opener.location.href=window.opener.location.href;}else{window.location.href=\"./\";}">×</button>';
+                var avatarHtml = avatarImg
+                    ? '<img src="' + avatarImg + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">'
+                    : '<div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:24px;font-weight:bold;display:flex;align-items:center;justify-content:center;">' + item.name.charAt(0) + '</div>';
+
+                var editBtnHtml = isAdmin ? '<button onclick="editMonthStarDetail(' + idx + ')" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:15px;font-size:13px;cursor:pointer;">编辑</button>' : '';
+
+                var detailHtml = '<div style="padding:20px;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;overflow-y:auto;">';
+                detailHtml += '<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px40px rgba(0,0,0,0.2);">';
+
+                // 头部
+                detailHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0;">';
+                detailHtml += '<div style="display:flex;align-items:center;gap:14px;">';
+                detailHtml += avatarHtml;
+                detailHtml += '<div><div style="font-size:20px;font-weight:600;color:#333;">' + item.name + '</div><div style="font-size:13px;color:#888;">' + item.count + '次发言 · ' + item.title + '</div></div>';
+                detailHtml += '</div>';
+                detailHtml += '<button onclick="closeAncientModal(\'monthStarDetailModal\')" style="width:36px;height:36px;background:#f0f0f0;color:#333;border:none;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>';
                 detailHtml += '</div>';
 
                 // 2月立的Flag
-                detailHtml += '<div class="section"><div class="section-title">🎯 2月立的Flag</div><div class="content" style="background:#fffbf0;border-left-color:#f5a623;">' + (detail.flag || '暂无') + '</div></div>';
+                detailHtml += '<div style="margin-bottom:18px;"><div style="font-size:14px;font-weight:600;color:#667eea;margin-bottom:8px;">🎯 2月立的Flag</div><div style="font-size:14px;color:#555;line-height:1.7;background:#fffbf0;padding:12px;border-radius:10px;border-left:3px solid #f5a623;">' + (detail.flag || '暂无') + '</div></div>';
 
                 // 详细事件
-                detailHtml += '<div class="section"><div class="section-title">详细事件</div><div class="content">' + (detail.events || item.did) + '</div></div>';
+                detailHtml += '<div style="margin-bottom:18px;"><div style="font-size:14px;font-weight:600;color:#667eea;margin-bottom:8px;">📋 详细事件</div><div style="font-size:14px;color:#555;line-height:1.7;background:#f8f9fa;padding:12px;border-radius:10px;border-left:3px solid #667eea;">' + (detail.events || item.did) + '</div></div>';
 
                 // 成长历程
-                detailHtml += '<div class="section"><div class="section-title">成长历程</div><div class="content">' + (detail.growth || item.growth) + '</div></div>';
+                detailHtml += '<div style="margin-bottom:18px;"><div style="font-size:14px;font-weight:600;color:#667eea;margin-bottom:8px;">🌱 成长历程</div><div style="font-size:14px;color:#555;line-height:1.7;background:#f8f9fa;padding:12px;border-radius:10px;border-left:3px solid #667eea;">' + (detail.growth || item.growth) + '</div></div>';
 
                 // 故事细节
-                detailHtml += '<div class="section"><div class="section-title">故事细节</div><div class="story">' + (detail.story || '暂无详细故事...') + '</div></div>';
+                detailHtml += '<div style="margin-bottom:18px;"><div style="font-size:14px;font-weight:600;color:#f5a623;margin-bottom:8px;">💝 故事细节</div><div style="font-size:14px;color:#555;line-height:1.7;background:#fffbf0;padding:12px;border-radius:10px;border-left:3px solid #f5a623;">' + (detail.story || '暂无详细故事...') + '</div></div>';
 
-                // 金句
-                detailHtml += '<div class="section"><div class="section-title">经典语录</div><div class="quote">"' + (detail.quote || item.quote) + '"</div></div>';
+                // 经典语录
+                detailHtml += '<div style="margin-bottom:18px;"><div style="font-size:14px;font-weight:600;color:#667eea;margin-bottom:8px;">✨ 经典语录</div><div style="font-size:14px;color:#666;font-style:italic;background:#f0f0f0;padding:14px;border-radius:10px;text-align:center;">"' + (detail.quote || item.quote) + '"</div></div>';
 
-                detailHtml += '</div></body></html>';
+                // 编辑按钮
+                if(isAdmin){
+                    detailHtml += '<div style="text-align:center;margin-top:20px;padding-top:15px;border-top:1px solid #eee;">';
+                    detailHtml += '<button onclick="editMonthStarDetail(' + idx + ')" style="padding:12px 24px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;">编辑详情</button>';
+                    detailHtml += '</div>';
+                }
 
-                // 打开新窗口
-                var newWindow = window.open('', '_blank', 'width=600,height=800,scrollbars=yes');
-                newWindow.document.write(detailHtml);
-                newWindow.document.close();
+                detailHtml += '</div></div>';
 
-                // 注入编辑函数
-                newWindow.editDetail = function(){
-                    var newFlag = prompt('2月立的Flag：', detail.flag || '');
-                    var newEvents = prompt('详细事件：', detail.events || item.did);
-                    var newGrowth = prompt('成长历程：', detail.growth || item.growth);
-                    var newStory = prompt('故事细节：', detail.story || '');
-                    var newQuote = prompt('经典语录：', detail.quote || item.quote);
-                    if(newEvents !== null){
-                        monthStarDetails[item.name] = {
-                            flag: newFlag || '',
-                            events: newEvents || item.did,
-                            growth: newGrowth || item.growth,
-                            story: newStory || '',
-                            quote: newQuote || item.quote
-                        };
-                        localStorage.setItem('monthStarDetails', JSON.stringify(monthStarDetails));
-                        window.showMonthStarDetail(idx);
-                    }
-                };
+                // 设置内容并打开弹窗
+                document.getElementById('monthStarDetailContent').innerHTML = detailHtml;
+                openAncientModal('monthStarDetailModal');
+            };
+
+            // 编辑月度之星详情
+            window.editMonthStarDetail = function(idx){
+                var item = monthSummaryData[idx];
+                var detail = monthStarDetails[item.name] || {};
+
+                var newFlag = prompt('2月立的Flag：', detail.flag || '');
+                var newEvents = prompt('详细事件：', detail.events || item.did);
+                var newGrowth = prompt('成长历程：', detail.growth || item.growth);
+                var newStory = prompt('故事细节：', detail.story || '');
+                var newQuote = prompt('经典语录：', detail.quote || item.quote);
+
+                if(newEvents !== null){
+                    monthStarDetails[item.name] = {
+                        flag: newFlag || '',
+                        events: newEvents || item.did,
+                        growth: newGrowth || item.growth,
+                        story: newStory || '',
+                        quote: newQuote || item.quote
+                    };
+                    localStorage.setItem('monthStarDetails', JSON.stringify(monthStarDetails));
+                    window.showMonthStarDetail(idx);
+                }
             };
 
             // 详细月度总结数据（v4版本）

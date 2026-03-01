@@ -3399,18 +3399,12 @@ function initFlagApp(){
             // 加载保存的头像
             var savedMonthStarAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
 
-            window.showMonthSummary = async function(){
+            window.showMonthSummary = function(){
                 var modal = document.getElementById('monthSummaryModal');
                 var content = document.getElementById('monthSummaryContent');
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
-                // 从云端加载头像
-                var avatars = await loadMonthStarAvatarsFromCloud();
-                // 同时也读取本地缓存作为备用
-                var localAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
-                // 合并两者，云端优先
-                Object.keys(localAvatars).forEach(function(key) {
-                    if(!avatars[key]) avatars[key] = localAvatars[key];
-                });
+                // 先用本地数据（快速显示）
+                var avatars = JSON.parse(localStorage.getItem(MONTH_STAR_AVATARS_KEY) || '{}');
 
                 var html = '<div style="padding:10px;">';
                 monthSummaryData.forEach(function(item, idx){
@@ -3448,17 +3442,13 @@ function initFlagApp(){
             };
 
             // 显示月度之星详情（弹窗形式）
-            window.showMonthStarDetail = async function(idx){
+            window.showMonthStarDetail = function(idx){
                 var item = monthSummaryData[idx];
                 var detail = monthStarDetails[item.name] || {};
                 var isAdmin = window.location.search.indexOf('admin=true') >= 0;
 
-                // 从云端加载头像
-                var avatars = await loadMonthStarAvatarsFromCloud();
-                var localAvatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
-                Object.keys(localAvatars).forEach(function(key) {
-                    if(!avatars[key]) avatars[key] = localAvatars[key];
-                });
+                // 直接用本地数据（快速显示）
+                var avatars = JSON.parse(localStorage.getItem(MONTH_STAR_AVATARS_KEY) || '{}');
                 var avatarImg = avatars[item.name];
                 var avatarHtml = avatarImg
                     ? '<img src="' + avatarImg + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">'

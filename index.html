@@ -3557,6 +3557,8 @@ function initFlagApp(){
                         var avatars = JSON.parse(localStorage.getItem('monthStarAvatars') || '{}');
                         avatars[name] = event.target.result;
                         localStorage.setItem('monthStarAvatars', JSON.stringify(avatars));
+                        // 显示保存成功的提示
+                        alert('头像上传成功！');
                         // 刷新页面以显示新头像
                         location.reload();
                     };

@@ -1853,7 +1853,7 @@ function initFlagApp(){
 
     <!-- 月度之星详情弹窗 -->
     <div class="ancient-modal" id="monthStarDetailModal" style="display:none;">
-        <div class="ancient-modal-content" id="monthStarDetailContent" style="max-width:600px;width:100%;height:100%;max-height:100vh;border-radius:0;margin:0;">
+        <div class="ancient-modal-content" id="monthStarDetailContent" style="max-width:600px;width:100%;height:100%;max-height:100vh;border-radius:0;margin:0;overflow-y:auto;">
             <!-- 详情内容 -->
         </div>
     </div>
@@ -3441,8 +3441,8 @@ function initFlagApp(){
 
                 var editBtnHtml = isAdmin ? '<button onclick="editMonthStarDetail(' + idx + ')" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:15px;font-size:13px;cursor:pointer;">编辑</button>' : '';
 
-                var detailHtml = '<div style="padding:20px;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;overflow-y:auto;">';
-                detailHtml += '<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px40px rgba(0,0,0,0.2);">';
+                var detailHtml = '<div style="padding:20px;padding-bottom:60px;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;box-sizing:border-box;">';
+                detailHtml += '<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;padding:20px;padding-bottom:40px;box-shadow:0 10px40px rgba(0,0,0,0.2);min-height:calc(100vh - 40px);box-sizing:border-box;">';
 
                 // 头部
                 detailHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0;">';

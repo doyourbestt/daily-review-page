@@ -3019,6 +3019,7 @@ function initFlagApp(){
             const MEMBERS_KEY = 'daily_members';
             const AVATARS_KEY = 'daily_avatars'; // 头像存储键
             const SYNC_KEY = 'last_sync_time'; // 上次同步时间
+            const MONTH_STAR_AVATARS_KEY = 'month_star_avatars'; // 月度之星头像存储键
 
             // Supabase配置
             const SUPABASE_URL = 'https://vieidfxeouhoddaxqzvc.supabase.co';
@@ -3562,9 +3563,6 @@ function initFlagApp(){
             // 加载详细数据（优先使用localStorage，没有则使用默认值）
             var savedDetails = localStorage.getItem('monthStarDetails');
             var monthStarDetails = savedDetails ? JSON.parse(savedDetails) : defaultMonthStarDetails;
-
-            // 月度之星头像存储键
-            const MONTH_STAR_AVATARS_KEY = 'month_star_avatars';
 
             // 上传月度之星头像（自动同步到云端）
             window.uploadMonthStarAvatar = async function(name, idx){

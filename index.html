@@ -832,6 +832,9 @@ window.addEventListener('load', function() {
                         case 'weekReport':
                             if(window.showWeekReport) window.showWeekReport();
                             break;
+                        case 'monthlyStar':
+                            if(window.showMonthSummary) window.showMonthSummary();
+                            break;
                         case 'addFlag':
                             if(window.showAddFlagModal) window.showAddFlagModal();
                             break;
@@ -862,9 +865,9 @@ window.addEventListener('load', function() {
         <span class="icon">👥</span>
         <span>查看全部</span>
     </div>
-    <div class="float-menu-item btn-ripple" data-action="weekReport">
-        <span class="icon">📊</span>
-        <span>本周周报</span>
+    <div class="float-menu-item btn-ripple" data-action="monthlyStar">
+        <span class="icon">⭐</span>
+        <span>月度之星</span>
     </div>
     <div class="float-menu-item btn-ripple" id="adminMenuItem1" style="display:none;" data-action="addFlag">
         <span class="icon">🎯</span>
@@ -1831,6 +1834,19 @@ function initFlagApp(){
             </div>
             <div class="ancient-modal-body" id="weekReportContent">
                 <!-- 周报内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 月度之星弹窗 -->
+    <div class="ancient-modal" id="monthSummaryModal" style="display:none;">
+        <div class="ancient-modal-content" style="max-width:500px;">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">⭐ 2月月度之星</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('monthSummaryModal')">×</button>
+            </div>
+            <div class="ancient-modal-body" id="monthSummaryContent" style="max-height:65vh;overflow-y:auto;">
+                <!-- 月度之星内容 -->
             </div>
         </div>
     </div>
@@ -3334,6 +3350,40 @@ function initFlagApp(){
                 openAncientModal('weekReportModal');
             }
 
+            // 月度之星总结
+            var monthSummaryData = [
+                {name:'小妮',count:1147,title:'主持人',did:'主持20+场早会、公司获投资、主导话题讨论',growth:'学会分析否定背后的诉求，建立自我评价体系',quote:'做好课题分离，最终承担者是自己'},
+                {name:'李韫',count:264,title:'活跃参与者',did:'第一次拍vlog、与老公深度交流6次、打开朋友圈',growth:'从封闭到开放，气息从紧张到稳定',quote:'放弃是另一种优化'},
+                {name:'光影',count:257,title:'技术派',did:'捣鼓各种AI工具、搭建复盘网页',growth:'从工具使用者到深度玩家',quote:'勇敢的人先享受世界'},
+                {name:'声声蔓',count:213,title:'感悟分享者',did:'深度讨论、记录生活、读书学习',growth:'从被否定不舒服到学会不当真',quote:'只要不上升到自我否定，任何人都否定不了你'},
+                {name:'喵喵',count:170,title:'组织者',did:'组织读书会、首次主持、处理亲子关系',growth:'从直升机妈妈到学会给孩子空间',quote:'敌人像弹簧，你弱它就强'},
+                {name:'袖手游长街',count:151,title:'故事分享者',did:'分享成长伤痕与和解、房子蒸发70万教训',growth:'从无法释怀到理解父母',quote:'伤痕也能成为成长养分'},
+                {name:'达达',count:147,title:'自律践行',did:'每天阅读冥想打卡、支持小伙伴',growth:'温暖包容如小太阳',quote:'被需要是一种幸福'},
+                {name:'miss恩',count:137,title:'学习达人',did:'分享学必讲、组建活动',growth:'通过分享倒逼自己成长',quote:'能讲出来说明你是丰盈的人'},
+                {name:'wq',count:130,title:'职场达人',did:'分享工作体验、讨论AI',growth:'职场中设定边界',quote:'该我做的事我做，不该我绝不参与'},
+                {name:'时成成',count:124,title:'新手妈妈',did:'分享带娃日常、参与讨论',growth:'感受全职妈妈的艰辛',quote:'不要做逆来顺受的软包子'}
+            ];
+
+            window.showMonthSummary = function(){
+                var modal = document.getElementById('monthSummaryModal');
+                var content = document.getElementById('monthSummaryContent');
+                var html = '<div style="padding:10px;">';
+                monthSummaryData.forEach(function(item){
+                    html += '<div style="background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px8px rgba(0,0,0,0.08);">';
+                    html += '<div style="display:flex;align-items:center;margin-bottom:10px;">';
+                    html += '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;">' + item.name.charAt(0) + '</div>';
+                    html += '<div><div style="font-weight:600;color:#333;font-size:15px;">' + item.name + '</div><div style="font-size:12px;color:#888;">' + item.count + '次发言 · ' + item.title + '</div></div>';
+                    html += '</div>';
+                    html += '<div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:8px;"><strong style="color:#667eea;">做了什么：</strong>' + item.did + '</div>';
+                    html += '<div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:8px;"><strong style="color:#667eea;">成长：</strong>' + item.growth + '</div>';
+                    html += '<div style="background:#f0f0f0;border-left:3px solid #667eea;padding:8px 12px;border-radius:0 8px 8px 0;font-size:12px;color:#666;font-style:italic;">"' + item.quote + '"</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                content.innerHTML = html;
+                openAncientModal('monthSummaryModal');
+            };
+
             // 保存数据
             function saveData() {
                 window.members = members;
@@ -4425,6 +4475,7 @@ function initFlagApp(){
             window.exportData = exportData;
             window.importData = importData;
             window.showWeekReport = showWeekReport;
+            window.showMonthSummary = showMonthSummary;
             window.syncToCloud = syncToCloud;
             window.syncFromCloud = syncFromCloud;
             window.showDailyReview = showDailyReview;

@@ -3394,9 +3394,15 @@ function initFlagApp(){
                 syncToCloud();
             };
 
-            // 页面加载时尝试同步
-            window.addEventListener('load', function() {
-                syncFromCloud();
+            // 页面加载时尝试同步，同步完成后再初始化
+            window.addEventListener('load', async function() {
+                // 先尝试从云端同步
+                if(supabase) {
+                    var result = await syncFromCloud();
+                    console.log('Initial sync result:', result);
+                }
+                // 然后初始化页面
+                initFlagsApp();
             });
 
             let currentMember = 'me';
@@ -4655,8 +4661,8 @@ function initFlagApp(){
                 showToast('Flag创建成功！');
             }
 
-            // 初始化
-            function init() {
+            // 初始化 Flag 应用
+            function initFlagsApp() {
                 // 简洁模式
                 document.body.classList.add('flags-only');
 
@@ -4735,7 +4741,7 @@ function initFlagApp(){
                 });
             }
 
-            init();
+            // init() 在 load 事件中调用，确保先同步云端数据
 
             // 暴露函数到全局
             window.switchMember = switchMember;
@@ -4969,22 +4975,23 @@ function initFlagApp(){
 
             // 渲染评分题目
             function renderVirtueQuestion() {
+                var body = document.getElementById('dailyReviewBody');
+
+                // 检查是否完成所有领域（放在最前面）
+                if (currentAreaIndex >= currentVirtueAreas.length) {
+                    finishVirtueReview();
+                    return;
+                }
+
                 var VIRTUE_AREAS = VIRTUE_CONFIG.areas;
                 var VIRTUE_QUESTIONS = VIRTUE_CONFIG.questions;
                 var VIRTUE_STANDARDS = VIRTUE_CONFIG.standards;
-                var body = document.getElementById('dailyReviewBody');
                 var area = currentVirtueAreas[currentAreaIndex];
                 var questions = VIRTUE_QUESTIONS[area.id];
                 var q = questions[currentQuestionIndex];
 
                 var totalQuestions = currentVirtueAreas.length * 5;
                 var currentTotal = currentAreaIndex * 5 + currentQuestionIndex + 1;
-
-                // 检查是否完成所有领域
-                if (currentAreaIndex >= currentVirtueAreas.length) {
-                    finishVirtueReview();
-                    return;
-                }
 
                 var areaInfo = VIRTUE_AREAS.find(function(a) { return a.id === area.id; });
                 var currentScore = selectedScores[area.id] || 0;

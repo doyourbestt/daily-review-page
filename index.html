@@ -758,23 +758,6 @@ window.openAncientModal = window.openAncientModal || function(modalId) {
         setTimeout(function(){modal.classList.add('show');}, 10);
     }
 };
-// 预定义showDailyReview - 简单版本
-window.showDailyReview = function() {
-    console.log('Simple showDailyReview called');
-    var modal = document.getElementById('dailyReviewModal');
-    var content = modal ? modal.querySelector('.ancient-modal-content') : null;
-    if(content) {
-        content.classList.add('with-scroll');
-        content.style.height = 'auto';
-        content.style.minHeight = '200px';
-        content.style.maxHeight = '85vh';
-    }
-    if(modal) {
-        modal.style.display = 'flex';
-        console.log('Modal height:', modal.offsetHeight, 'Content height:', content ? content.offsetHeight : 'N/A');
-        setTimeout(function(){modal.classList.add('show');}, 10);
-    }
-};
 // 延迟设置菜单点击事件，等待函数定义完成
 window.addEventListener('load', function() {
     console.log('Setting up menu events...');
@@ -1914,12 +1897,12 @@ function initFlagApp(){
 
     <!-- 每日复盘引导弹窗 -->
     <div class="ancient-modal" id="dailyReviewModal" style="display:none;">
-        <div class="ancient-modal-content">
+        <div class="ancient-modal-content" style="max-width:400px;max-height:85vh;">
             <div class="ancient-modal-header">
                 <span class="ancient-modal-title">⭐ 美德复盘</span>
                 <button class="ancient-modal-close" onclick="closeAncientModal('dailyReviewModal')">×</button>
             </div>
-            <div class="ancient-modal-body" id="dailyReviewBody">
+            <div class="ancient-modal-body" id="dailyReviewBody" style="max-height:70vh;overflow-y:auto;">
                 <!-- 动态内容 -->
             </div>
         </div>

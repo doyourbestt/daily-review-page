@@ -12,6 +12,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ==========================================
 -- Extends auth.users with additional profile information
 
+-- Drop existing profiles table to ensure fresh creation
+DROP TABLE IF EXISTS profiles CASCADE;
+
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE,
@@ -368,6 +371,127 @@ ALTER PUBLICATION supabase_realtime ADD TABLE likes;
 
 -- For favorites (optional)
 ALTER PUBLICATION supabase_realtime ADD TABLE favorites;
+
+-- ==========================================
+-- 6. VIRTUE REVIEWS TABLE (美德复盘)
+-- ==========================================
+-- 存储用户每日美德评分数据
+
+CREATE TABLE IF NOT EXISTS virtue_reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  date DATE NOT NULL,
+  areas JSONB NOT NULL,  -- 当天评测的领域ID数组
+  results JSONB NOT NULL,  -- 各领域评分详情
+  total_score INTEGER NOT NULL,  -- 总分
+  total_max INTEGER NOT NULL,    -- 满分
+  average_score DECIMAL(3,1) NOT NULL,  -- 平均分(5分制)
+  cycle_count INTEGER DEFAULT 1,  -- 周期轮次
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT unique_user_date UNIQUE(user_id, date)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_virtue_reviews_user ON virtue_reviews(user_id);
+CREATE INDEX IF NOT EXISTS idx_virtue_reviews_date ON virtue_reviews(date DESC);
+CREATE INDEX IF NOT EXISTS idx_virtue_reviews_user_date ON virtue_reviews(user_id, date DESC);
+
+-- ==========================================
+-- ROW LEVEL SECURITY FOR VIRTUE REVIEWS
+-- ==========================================
+
+ALTER TABLE virtue_reviews ENABLE ROW LEVEL SECURITY;
+
+-- 所有人可以查看所有用户的评分（用于排行榜）
+DROP POLICY IF EXISTS "Anyone can view virtue reviews" ON virtue_reviews;
+CREATE POLICY "Anyone can view virtue reviews"
+  ON virtue_reviews FOR SELECT
+  USING (true);
+
+-- 登录用户可以插入自己的复盘
+DROP POLICY IF EXISTS "Users can insert their own virtue reviews" ON virtue_reviews;
+CREATE POLICY "Users can insert their own virtue reviews"
+  ON virtue_reviews FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- 登录用户可以更新自己的复盘
+DROP POLICY IF EXISTS "Users can update their own virtue reviews" ON virtue_reviews;
+CREATE POLICY "Users can update their own virtue reviews"
+  ON virtue_reviews FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ==========================================
+-- HELPER VIEW: VIRTUE LEADERBOARD
+-- ==========================================
+
+-- 创建排行榜视图（汇总所有用户的平均得分）
+CREATE OR REPLACE VIEW virtue_leaderboard AS
+SELECT
+  p.id as user_id,
+  p.display_name,
+  p.avatar_url,
+  COUNT(vr.id) as total_days,
+  ROUND(AVG(vr.average_score), 1) as avg_score,
+  MAX(vr.date) as last_review_date,
+  SUM(vr.total_score) as total_score,
+  SUM(vr.total_max) as total_max
+FROM virtue_reviews vr
+JOIN profiles p ON vr.user_id = p.id
+GROUP BY p.id, p.display_name, p.avatar_url
+ORDER BY avg_score DESC, total_days DESC;
+
+-- ==========================================
+-- HELPER FUNCTION: GET USER STATS
+-- ==========================================
+
+-- 获取用户连续打卡天数
+CREATE OR REPLACE FUNCTION get_virtue_streak(p_user_id UUID)
+RETURNS INTEGER AS $$
+  DECLARE
+    streak INTEGER := 0;
+    current_dt DATE;
+    review_date DATE;
+  BEGIN
+    current_dt := CURRENT_DATE;
+
+    -- 如果今天还没打卡，从昨天开始算
+    IF NOT EXISTS (
+      SELECT 1 FROM virtue_reviews
+      WHERE user_id = p_user_id AND date = current_dt
+    ) THEN
+      current_dt := current_dt - 1;
+    END IF;
+
+    -- 连续打卡计算
+    LOOP
+      SELECT date INTO review_date
+      FROM virtue_reviews
+      WHERE user_id = p_user_id AND date = current_dt
+      LIMIT 1;
+
+      IF review_date IS NOT NULL THEN
+        streak := streak + 1;
+        current_dt := current_dt - 1;
+      ELSE
+        EXIT;
+      END IF;
+
+      -- 防止无限循环
+      IF streak > 365 THEN
+        EXIT;
+      END IF;
+    END LOOP;
+
+    RETURN streak;
+  END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- ==========================================
+-- REALTIME FOR VIRTUE REVIEWS
+-- ==========================================
+
+ALTER PUBLICATION supabase_realtime ADD TABLE virtue_reviews;
 
 -- ==========================================
 -- END OF SCHEMA

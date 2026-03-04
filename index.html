@@ -841,6 +841,12 @@ window.addEventListener('load', function() {
                         case 'addMember':
                             if(window.showAddMemberModal) window.showAddMemberModal();
                             break;
+                        case 'leaderboard':
+                            if(window.showLeaderboard) window.showLeaderboard();
+                            break;
+                        case 'login':
+                            if(window.showLoginModal) window.showLoginModal();
+                            break;
                     }
                 }, 100);
             });
@@ -854,8 +860,16 @@ window.addEventListener('load', function() {
 <div class="float-menu" id="floatMenu">
     <div class="float-menu-title">⚡ 快捷功能</div>
     <div class="float-menu-item btn-ripple" data-action="dailyReview">
-        <span class="icon">🌙</span>
-        <span>今日复盘</span>
+        <span class="icon">⭐</span>
+        <span>美德复盘</span>
+    </div>
+    <div class="float-menu-item btn-ripple" data-action="leaderboard">
+        <span class="icon">🏆</span>
+        <span>排行榜</span>
+    </div>
+    <div class="float-menu-item btn-ripple" data-action="login">
+        <span class="icon">👤</span>
+        <span id="loginMenuText">登录</span>
     </div>
     <div class="float-menu-item btn-ripple" data-action="myMemory">
         <span class="icon">📜</span>
@@ -1902,7 +1916,7 @@ function initFlagApp(){
     <div class="ancient-modal" id="dailyReviewModal" style="display:none;">
         <div class="ancient-modal-content">
             <div class="ancient-modal-header">
-                <span class="ancient-modal-title">🌙 今日复盘</span>
+                <span class="ancient-modal-title">⭐ 美德复盘</span>
                 <button class="ancient-modal-close" onclick="closeAncientModal('dailyReviewModal')">×</button>
             </div>
             <div class="ancient-modal-body" id="dailyReviewBody">
@@ -1945,6 +1959,43 @@ function initFlagApp(){
 
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+
+    <!-- Login Modal -->
+    <div class="ancient-modal" id="loginModal" style="display:none;">
+        <div class="ancient-modal-content" style="max-width:380px;">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title" id="loginModalTitle">登录 / 注册</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('loginModal')">×</button>
+            </div>
+            <div class="ancient-modal-body">
+                <div id="loginForm">
+                    <input type="text" id="loginEmail" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="邮箱地址">
+                    <input type="password" id="loginPassword" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="密码">
+                    <input type="text" id="loginDisplayName" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;display:none;" placeholder="显示名称">
+                    <button class="btn-ripple btn-active" onclick="doLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">登录</button>
+                    <button class="btn-ripple btn-active" onclick="doRegister()" style="width:100%;padding:14px;background:#F5F5F5;border:none;border-radius:10px;color:#5D4037;font-size:14px;cursor:pointer;margin-bottom:10px;">注册新账号</button>
+                </div>
+                <div id="loginSuccess" style="display:none;text-align:center;padding:20px;">
+                    <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+                    <div style="font-size:16px;color:#5D4037;font-weight:600;margin-bottom:8px;">登录成功！</div>
+                    <div id="loginUserName" style="font-size:14px;color:#8D6E63;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="ancient-modal" id="leaderboardModal" style="display:none;">
+        <div class="ancient-modal-content" style="max-width:400px;max-height:80vh;overflow-y:auto;">
+            <div class="ancient-modal-header">
+                <span class="ancient-modal-title">🏆 排行榜</span>
+                <button class="ancient-modal-close" onclick="closeAncientModal('leaderboardModal')">×</button>
+            </div>
+            <div class="ancient-modal-body" id="leaderboardBody">
+                <div style="text-align:center;padding:20px;">加载中...</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -2100,6 +2151,9 @@ function initFlagApp(){
     <!-- GSAP Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- 美德题库配置 -->
+    <script src="js/virtue-questions.js"></script>
 
     <script>
         // ============== Polyfills ==============
@@ -3032,6 +3086,230 @@ function initFlagApp(){
             } catch(e) {
                 console.log('Supabase init failed', e);
             }
+
+            // ===== 用户认证系统 =====
+            let currentUser = null;
+
+            // 检查当前登录状态
+            async function checkAuthState() {
+                if (!supabase) return null;
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) {
+                        currentUser = session.user;
+                        localStorage.setItem('virtue_user_id', session.user.id);
+                        return session.user;
+                    }
+                } catch(e) {
+                    console.log('Auth check failed', e);
+                }
+                return null;
+            }
+
+            // 显示登录弹窗
+            window.showLoginModal = function() {
+                openAncientModal('loginModal');
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('loginSuccess').style.display = 'none';
+            };
+
+            // 执行登录
+            window.doLogin = async function() {
+                var email = document.getElementById('loginEmail').value.trim();
+                var password = document.getElementById('loginPassword').value.trim();
+
+                if (!email || !password) {
+                    alert('请输入邮箱和密码');
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    if (error) throw error;
+
+                    currentUser = data.user;
+                    localStorage.setItem('virtue_user_id', data.user.id);
+
+                    // 显示成功
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('loginSuccess').style.display = 'block';
+                    document.getElementById('loginUserName').textContent = '欢迎，' + (data.user.email || '用户');
+
+                    setTimeout(function() {
+                        closeAncientModal('loginModal');
+                        showToast('登录成功！');
+                    }, 1500);
+
+                } catch(e) {
+                    alert('登录失败: ' + e.message);
+                }
+            };
+
+            // 执行注册
+            window.doRegister = async function() {
+                var email = document.getElementById('loginEmail').value.trim();
+                var password = document.getElementById('loginPassword').value.trim();
+                var displayName = document.getElementById('loginDisplayName').value.trim();
+
+                if (!email || !password) {
+                    alert('请输入邮箱和密码');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    alert('密码长度至少6位');
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            data: {
+                                display_name: displayName || email.split('@')[0]
+                            }
+                        }
+                    });
+
+                    if (error) throw error;
+
+                    alert('注册成功！请查收邮箱验证链接（或直接登录）。');
+                    // 自动切换到登录
+                    document.getElementById('loginPassword').focus();
+
+                } catch(e) {
+                    alert('注册失败: ' + e.message);
+                }
+            };
+
+            // 退出登录
+            window.doLogout = async function() {
+                if (!supabase) return;
+                await supabase.auth.signOut();
+                currentUser = null;
+                localStorage.removeItem('virtue_user_id');
+                showToast('已退出登录');
+            };
+
+            // 获取当前用户ID
+            window.getCurrentUserId = function() {
+                return currentUser ? currentUser.id : localStorage.getItem('virtue_user_id');
+            };
+
+            // 检查是否已登录
+            window.isLoggedIn = function() {
+                return !!currentUser || !!localStorage.getItem('virtue_user_id');
+            };
+
+            // ===== 排行榜功能 =====
+            window.showLeaderboard = async function() {
+                openAncientModal('leaderboardModal');
+                var body = document.getElementById('leaderboardBody');
+                body.innerHTML = '<div style="text-align:center;padding:20px;">加载中...</div>';
+
+                if (!supabase) {
+                    body.innerHTML = '<div style="text-align:center;padding:20px;">无法加载排行榜</div>';
+                    return;
+                }
+
+                try {
+                    // 获取排行榜数据
+                    const { data, error } = await supabase
+                        .from('virtue_reviews')
+                        .select(`
+                            user_id,
+                            date,
+                            total_score,
+                            total_max,
+                            average_score,
+                            profiles:user_id (display_name, avatar_url)
+                        `)
+                        .order('date', { ascending: false })
+                        .limit(100);
+
+                    if (error) throw error;
+
+                    // 按用户汇总
+                    var userStats = {};
+                    data.forEach(function(r) {
+                        var uid = r.user_id;
+                        if (!userStats[uid]) {
+                            userStats[uid] = {
+                                user_id: uid,
+                                display_name: r.profiles ? r.profiles.display_name : '匿名用户',
+                                avatar_url: r.profiles ? r.profiles.avatar_url : null,
+                                days: 0,
+                                total_score: 0,
+                                total_max: 0,
+                                scores: []
+                            };
+                        }
+                        userStats[uid].days++;
+                        userStats[uid].total_score += r.total_score;
+                        userStats[uid].total_max += r.total_max;
+                        userStats[uid].scores.push(r.average_score);
+                    });
+
+                    // 计算平均分并排序
+                    var leaderboard = Object.values(userStats).map(function(u) {
+                        var avg = u.scores.length > 0
+                            ? (u.scores.reduce(function(a,b){return a+b},0) / u.scores.length).toFixed(1)
+                            : 0;
+                        return {
+                            display_name: u.display_name,
+                            avatar_url: u.avatar_url,
+                            days: u.days,
+                            avg_score: avg,
+                            total_score: u.total_score
+                        };
+                    });
+
+                    leaderboard.sort(function(a,b) {
+                        return parseFloat(b.avg_score) - parseFloat(a.avg_score);
+                    });
+
+                    // 渲染排行榜
+                    if (leaderboard.length === 0) {
+                        body.innerHTML = '<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:16px;">🏆</div><div style="font-size:16px;color:#5D4037;">暂无排行榜数据</div><div style="font-size:14px;color:#8D6E63;margin-top:8px;">成为第一个打卡的人吧！</div></div>';
+                        return;
+                    }
+
+                    var html = '<div style="padding:0 10px;">';
+                    leaderboard.forEach(function(u, i) {
+                        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+                        var bgColor = i < 3 ? '#FFF8E1' : '#F5F5F5';
+                        var avatarHtml = u.avatar_url
+                            ? '<img src="' + u.avatar_url + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">'
+                            : '<div style="width:40px;height:40px;border-radius:50%;background:#8B4513;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;">' + (u.display_name ? u.display_name.charAt(0).toUpperCase() : '?') + '</div>';
+
+                        html +=
+                            '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:' + bgColor + ';border-radius:10px;margin-bottom:8px;">' +
+                                '<span style="font-size:20px;width:30px;text-align:center;">' + medal + '</span>' +
+                                avatarHtml +
+                                '<div style="flex:1;">' +
+                                    '<div style="font-size:14px;font-weight:600;color:#5D4037;">' + u.display_name + '</div>' +
+                                    '<div style="font-size:12px;color:#8D6E63;">' + u.days + '天打卡</div>' +
+                                '</div>' +
+                                '<div style="text-align:right;">' +
+                                    '<div style="font-size:18px;font-weight:700;color:#8B4513;">' + u.avg_score + '</div>' +
+                                    '<div style="font-size:10px;color:#8D6E63;">平均分</div>' +
+                                '</div>' +
+                            '</div>';
+                    });
+                    html += '</div>';
+
+                    body.innerHTML = html;
+
+                } catch(e) {
+                    console.error('Leaderboard error', e);
+                    body.innerHTML = '<div style="text-align:center;padding:20px;">加载失败: ' + e.message + '</div>';
+                }
+            };
 
             // 同步数据到云端
             async function syncToCloud() {
@@ -4414,17 +4692,22 @@ function initFlagApp(){
 
                 // 绑定事件
                 var addFlagBtn = document.getElementById('addFlagBtn');
-                addFlagBtn.addEventListener('click', openAddModal);
-                document.getElementById('flagModalClose').addEventListener('click', closeModal);
-                document.getElementById('flagSaveBtn').addEventListener('click', saveNewFlag);
+                if (addFlagBtn) addFlagBtn.addEventListener('click', openAddModal);
+                var flagModalClose = document.getElementById('flagModalClose');
+                if (flagModalClose) flagModalClose.addEventListener('click', closeModal);
+                var flagSaveBtn = document.getElementById('flagSaveBtn');
+                if (flagSaveBtn) flagSaveBtn.addEventListener('click', saveNewFlag);
 
-                document.getElementById('addMemberBtn2').addEventListener('click', openMemberModal);
+                var addMemberBtn2 = document.getElementById('addMemberBtn2');
+                if (addMemberBtn2) addMemberBtn2.addEventListener('click', openMemberModal);
 
                 // 导出数据
-                document.getElementById('exportBtn').addEventListener('click', exportData);
+                var exportBtn = document.getElementById('exportBtn');
+                if (exportBtn) exportBtn.addEventListener('click', exportData);
 
                 // 导入数据
-                document.getElementById('importBtn').addEventListener('click', function() {
+                var importBtn = document.getElementById('importBtn');
+                if (importBtn) importBtn.addEventListener('click', function() {
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = '.json';
@@ -4434,28 +4717,38 @@ function initFlagApp(){
                     };
                     input.click();
                 });
-                document.getElementById('memberModalClose').addEventListener('click', closeModal);
-                document.getElementById('memberSaveBtn').addEventListener('click', saveNewMember);
+                var memberModalClose = document.getElementById('memberModalClose');
+                if (memberModalClose) memberModalClose.addEventListener('click', closeModal);
+                var memberSaveBtn = document.getElementById('memberSaveBtn');
+                if (memberSaveBtn) memberSaveBtn.addEventListener('click', saveNewMember);
 
                 // 点击外部关闭弹窗
-                document.getElementById('flagModal').addEventListener('click', function(e) {
+                var flagModal = document.getElementById('flagModal');
+                if (flagModal) flagModal.addEventListener('click', function(e) {
                     if (e.target === this) closeModal();
                 });
-                document.getElementById('memberModal').addEventListener('click', function(e) {
+                var memberModal = document.getElementById('memberModal');
+                if (memberModal) memberModal.addEventListener('click', function(e) {
                     if (e.target === this) closeModal();
                 });
 
                 // 庆祝动画点击关闭
-                document.getElementById('celebrationOverlay').addEventListener('click', function() {
+                var celebrationOverlay = document.getElementById('celebrationOverlay');
+                if (celebrationOverlay) celebrationOverlay.addEventListener('click', function() {
                     this.classList.remove('show');
                 });
 
                 // 回车提交
-                document.getElementById('memberNameInput').addEventListener('keypress', function(e) {
+                var memberNameInput = document.getElementById('memberNameInput');
+                if (memberNameInput) memberNameInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') saveNewMember();
                 });
-                document.getElementById('flagTitle').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') document.getElementById('flagTarget').focus();
+                var flagTitle = document.getElementById('flagTitle');
+                if (flagTitle) flagTitle.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        var flagTarget = document.getElementById('flagTarget');
+                        if (flagTarget) flagTarget.focus();
+                    }
                 });
             }
 
@@ -4596,91 +4889,513 @@ function initFlagApp(){
                 }
             };
 
-            // ===== 每日复盘引导功能 =====
-            console.log('Loading daily review functions...');
-            var dailyReviewQuestions = [
-                {q: '今天最有成就感的一件事是什么？', placeholder: '写下让你感到骄傲的事...'},
-                {q: '今天有什么可以做得更好？', placeholder: '思考一下改进空间...'},
-                {q: '今天最感恩的一件事？', placeholder: '珍惜当下的美好...'},
-                {q: '今天学到了什么新东西？', placeholder: '每天都在进步...'}
-            ];
-            var currentQuestionIndex = 0;
-            var todayReviewAnswers = [];
+            // ===== 富兰克林美德评分系统 =====
+            console.log('Loading virtue review system...');
 
+            // 从外部题库加载配置
+            var VIRTUE_AREAS = VIRTUE_CONFIG.areas;
+            var VIRTUE_QUESTIONS = VIRTUE_CONFIG.questions;
+            var VIRTUE_STANDARDS = VIRTUE_CONFIG.standards;
+
+            // 状态变量
+            var currentVirtueAreas = [];
+            var currentAreaIndex = 0;
+            var currentQuestionIndex = 0;
+            var todayVirtueAnswers = {};
+            var selectedScores = {};
+
+            // 固定抽取2个领域（10题），4次完成一个周期，覆盖全部8个领域
+            function getRandomAreas(count) {
+                // 获取周期状态
+                var cycleData = JSON.parse(localStorage.getItem('virtueCycleData') || '{"usedAreas":[],"cycleCount":0}');
+                var VIRTUE_AREAS = VIRTUE_CONFIG.areas;
+
+                // 如果已使用8个领域，开始新周期
+                if (cycleData.usedAreas.length >= 8) {
+                    cycleData.usedAreas = [];
+                    cycleData.cycleCount = 0;
+                }
+
+                // 剩余可用领域
+                var available = VIRTUE_AREAS.filter(function(a) {
+                    return cycleData.usedAreas.indexOf(a.id) === -1;
+                });
+
+                // 洗牌算法
+                for (var i = available.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var temp = available[i];
+                    available[i] = available[j];
+                    available[j] = temp;
+                }
+
+                // 固定选2个
+                var selected = available.slice(0, 2);
+
+                // 更新周期数据
+                cycleData.usedAreas = cycleData.usedAreas.concat(selected.map(function(a) { return a.id; }));
+                cycleData.cycleCount++;
+                localStorage.setItem('virtueCycleData', JSON.stringify(cycleData));
+
+                console.log('美德复盘周期: 第' + cycleData.cycleCount + '轮，已使用领域:', cycleData.usedAreas);
+
+                return selected;
+            }
+
+            // 检查是否需要显示每日复盘
             window.checkDailyReview = function() {
                 var now = new Date();
                 var hour = now.getHours();
                 // 下午5点后（17:00）
-                if(hour >= 17) {
+                if (hour >= 17) {
                     var today = now.toISOString().split('T')[0];
-                    var lastReviewDate = localStorage.getItem('dailyReviewDate');
+                    var lastReviewDate = localStorage.getItem('virtueReviewDate');
                     // 今天还没复盘
-                    if(lastReviewDate !== today) {
-                        // 显示复盘引导
-                        setTimeout(function(){
+                    if (lastReviewDate !== today) {
+                        setTimeout(function() {
                             showDailyReview();
                         }, 2000);
                     }
                 }
             };
 
+            // 显示今日复盘
             window.showDailyReview = function() {
-                console.log('Real showDailyReview called!');
-                alert('今日复盘功能正在加载...');
-                currentQuestionIndex = 0;
-                todayReviewAnswers = [];
-                renderDailyReviewQuestion();
-                openAncientModal('dailyReviewModal');
-            };
+                var today = new Date().toISOString().split('T')[0];
+                var lastReviewDate = localStorage.getItem('virtueReviewDate');
 
-            function renderDailyReviewQuestion() {
-                var body = document.getElementById('dailyReviewBody');
-                if(currentQuestionIndex >= 2 || currentQuestionIndex >= dailyReviewQuestions.length) {
-                    // 复盘完成
-                    var today = new Date().toISOString().split('T')[0];
-                    localStorage.setItem('dailyReviewDate', today);
-                    localStorage.setItem('dailyReview_' + today, JSON.stringify(todayReviewAnswers));
-
-                    body.innerHTML = '<div style="text-align:center;padding:20px;">' +
-                        '<div style="font-size:48px;margin-bottom:16px;">✨</div>' +
-                        '<div style="font-size:18px;color:#5D4037;font-weight:600;margin-bottom:8px;">今日复盘已完成！</div>' +
-                        '<div style="font-size:13px;color:#8D6E63;">记录是对生活的尊重</div>' +
-                        '<button class="btn-ripple btn-active" onclick="closeAncientModal(\'dailyReviewModal\')" style="margin-top:20px;padding:12px 30px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:20px;color:white;font-size:14px;font-weight:600;cursor:pointer;">太棒了</button>' +
-                        '</div>';
+                // 如果今天已完成，显示统计
+                if (lastReviewDate === today) {
+                    showVirtueStats();
                     return;
                 }
 
-                var q = dailyReviewQuestions[currentQuestionIndex];
-                body.innerHTML = '<div style="margin-bottom:20px;">' +
-                    '<div style="font-size:14px;color:#8D6E63;margin-bottom:8px;">问题 ' + (currentQuestionIndex + 1) + '/2</div>' +
-                    '<div style="font-size:17px;color:#5D4037;font-weight:600;">' + q.q + '</div>' +
+                // 随机抽取1-3个领域
+                var VIRTUE_AREAS = VIRTUE_CONFIG.areas;
+                var VIRTUE_QUESTIONS = VIRTUE_CONFIG.questions;
+                var VIRTUE_STANDARDS = VIRTUE_CONFIG.standards;
+                currentVirtueAreas = getRandomAreas(2);  // 固定2个领域，10题
+                currentAreaIndex = 0;
+                currentQuestionIndex = 0;
+                todayVirtueAnswers = {};
+                selectedScores = {};
+
+                renderVirtueQuestion();
+                openAncientModal('dailyReviewModal');
+            };
+
+            // 渲染评分题目
+            function renderVirtueQuestion() {
+                var VIRTUE_AREAS = VIRTUE_CONFIG.areas;
+                var VIRTUE_QUESTIONS = VIRTUE_CONFIG.questions;
+                var VIRTUE_STANDARDS = VIRTUE_CONFIG.standards;
+                var body = document.getElementById('dailyReviewBody');
+                var area = currentVirtueAreas[currentAreaIndex];
+                var questions = VIRTUE_QUESTIONS[area.id];
+                var q = questions[currentQuestionIndex];
+
+                var totalQuestions = currentVirtueAreas.length * 5;
+                var currentTotal = currentAreaIndex * 5 + currentQuestionIndex + 1;
+
+                // 检查是否完成所有领域
+                if (currentAreaIndex >= currentVirtueAreas.length) {
+                    finishVirtueReview();
+                    return;
+                }
+
+                var areaInfo = VIRTUE_AREAS.find(function(a) { return a.id === area.id; });
+                var currentScore = selectedScores[area.id] || 0;
+
+                // 显示行动指引（如果有）
+                var actionTip = q.action ? '<div style="margin-bottom:16px;padding:10px;background:' + areaInfo.color + '10;border-left:3px solid ' + areaInfo.color + ';border-radius:4px;font-size:12px;color:#5D4037;"><span style="font-weight:600;">💡 </span>' + q.action + '</div>' : '';
+
+                body.innerHTML =
+                    '<div style="margin-bottom:16px;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+                            '<div style="display:flex;align-items:center;gap:8px;">' +
+                                '<span style="font-size:24px;">' + areaInfo.icon + '</span>' +
+                                '<span style="font-size:16px;font-weight:600;color:' + areaInfo.color + ';">' + areaInfo.name + '</span>' +
+                            '</div>' +
+                            '<span style="font-size:12px;color:#8D6E63;">' + currentTotal + '/' + totalQuestions + '</span>' +
+                        '</div>' +
+                        '<div style="background:linear-gradient(90deg,' + areaInfo.color + '20,' + areaInfo.color + '40);height:4px;border-radius:2px;margin-bottom:16px;">' +
+                            '<div style="background:' + areaInfo.color + ';height:4px;border-radius:2px;width:' + (currentScore / 25 * 100) + '%;transition:width 0.3s;"></div>' +
+                        '</div>' +
                     '</div>' +
-                    '<textarea id="reviewAnswer" rows="4" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;resize:none;box-sizing:border-box;margin-bottom:16px;" placeholder="' + q.placeholder + '"></textarea>' +
+                    '<div style="margin-bottom:20px;">' +
+                        '<div style="font-size:14px;color:#8D6E63;margin-bottom:8px;">问题 ' + (currentQuestionIndex + 1) + '/5</div>' +
+                        '<div style="font-size:17px;color:#5D4037;font-weight:600;line-height:1.5;">' + q.q + '</div>' +
+                    '</div>' +
+                    actionTip +
+                    '<div id="scoreOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">';
+
+                for (var i = 0; i < 5; i++) {
+                    var isSelected = selectedScores[area.id] === i + 1;
+                    body.innerHTML +=
+                        '<div onclick="selectVirtueScore(' + (i + 1) + ')" style="padding:12px 16px;border:2px solid ' + (isSelected ? areaInfo.color : '#D7CCC8') + ';border-radius:10px;cursor:pointer;transition:all 0.2s;' + (isSelected ? 'background:' + areaInfo.color + '15;' : '') + '">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                                '<span style="font-size:14px;color:#5D4037;">' + q.levels[i] + '</span>' +
+                                '<span style="font-size:14px;font-weight:600;color:' + (isSelected ? areaInfo.color : '#8D6E63') + ';">' + (i + 1) + '</span>' +
+                            '</div>' +
+                        '</div>';
+                }
+
+                body.innerHTML += '</div>' +
                     '<div style="display:flex;gap:10px;">' +
-                    '<button class="btn-ripple btn-active" onclick="skipDailyReview()" style="flex:1;padding:12px;background:#F5F5F5;border:none;border-radius:10px;color:#8D6E63;font-size:14px;cursor:pointer;">跳过</button>' +
-                    '<button class="btn-ripple btn-active" onclick="saveDailyReviewAnswer()" style="flex:2;padding:12px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">保存</button>' +
+                        '<button class="btn-ripple btn-active" onclick="skipVirtueQuestion()" style="flex:1;padding:12px;background:#F5F5F5;border:none;border-radius:10px;color:#8D6E63;font-size:14px;cursor:pointer;">跳过此题</button>' +
+                        '<button class="btn-ripple btn-active" onclick="nextVirtueQuestion()" style="flex:2;padding:12px;background:linear-gradient(135deg,' + areaInfo.color + ',' + shadeColor(areaInfo.color, -20) + ');border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;' + (selectedScores[area.id] ? '' : 'opacity:0.5;pointer-events:none;') + ';">下一题</button>' +
                     '</div>';
             }
 
-            window.saveDailyReviewAnswer = function() {
-                var answer = document.getElementById('reviewAnswer').value.trim();
-                if(answer) {
-                    todayReviewAnswers.push({
-                        question: dailyReviewQuestions[currentQuestionIndex].q,
-                        answer: answer
-                    });
-                }
-                currentQuestionIndex++;
-                renderDailyReviewQuestion();
+            // 选择分数
+            window.selectVirtueScore = function(score) {
+                var area = currentVirtueAreas[currentAreaIndex];
+                selectedScores[area.id] = score;
+                renderVirtueQuestion();
             };
 
-            window.skipDailyReview = function() {
+            // 下一题
+            window.nextVirtueQuestion = function() {
+                var area = currentVirtueAreas[currentAreaIndex];
+                var questions = VIRTUE_QUESTIONS[area.id];
+                var q = questions[currentQuestionIndex];
+
+                if (!todayVirtueAnswers[area.id]) {
+                    todayVirtueAnswers[area.id] = [];
+                }
+                todayVirtueAnswers[area.id].push({
+                    question: q.q,
+                    score: selectedScores[area.id],
+                    level: q.levels[selectedScores[area.id] - 1]
+                });
+
                 currentQuestionIndex++;
-                renderDailyReviewQuestion();
+
+                if (currentQuestionIndex >= questions.length) {
+                    currentAreaIndex++;
+                    currentQuestionIndex = 0;
+                }
+
+                renderVirtueQuestion();
             };
+
+            // 跳过此题
+            window.skipVirtueQuestion = function() {
+                var area = currentVirtueAreas[currentAreaIndex];
+                var questions = VIRTUE_QUESTIONS[area.id];
+                var q = questions[currentQuestionIndex];
+
+                if (!todayVirtueAnswers[area.id]) {
+                    todayVirtueAnswers[area.id] = [];
+                }
+                todayVirtueAnswers[area.id].push({
+                    question: q.q,
+                    score: 0,
+                    level: '未评分'
+                });
+
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex >= questions.length) {
+                    currentAreaIndex++;
+                    currentQuestionIndex = 0;
+                }
+
+                renderVirtueQuestion();
+            };
+
+            // 辅助函数：调整颜色亮度
+            function shadeColor(color, percent) {
+                var num = parseInt(color.replace('#', ''), 16);
+                var amt = Math.round(2.55 * percent);
+                var R = (num >> 16) + amt;
+                var G = (num >> 8 & 0x00FF) + amt;
+                var B = (num & 0x0000FF) + amt;
+                return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+
+            // 完成复盘
+            function finishVirtueReview() {
+                var today = new Date().toISOString().split('T')[0];
+                var reviews = JSON.parse(localStorage.getItem('virtueReviews') || '{}');
+
+                // 计算每个领域的总分
+                var areaResults = {};
+                var totalScore = 0;
+                var totalMax = 0;
+
+                Object.keys(todayVirtueAnswers).forEach(function(areaId) {
+                    var areaAnswers = todayVirtueAnswers[areaId];
+                    var areaInfo = VIRTUE_AREAS.find(function(a) { return a.id === areaId; });
+                    var score = areaAnswers.reduce(function(sum, a) { return sum + a.score; }, 0);
+                    areaResults[areaId] = {
+                        area: areaInfo.name,
+                        icon: areaInfo.icon,
+                        color: areaInfo.color,
+                        score: score,
+                        maxScore: 25,
+                        percentage: Math.round(score / 25 * 100),
+                        answers: areaAnswers
+                    };
+                    totalScore += score;
+                    totalMax += 25;
+                });
+
+                reviews[today] = {
+                    areas: currentVirtueAreas.map(function(a) { return a.id; }),
+                    results: areaResults,
+                    totalScore: totalScore,
+                    totalMax: totalMax,
+                    average: (totalScore / totalMax * 5).toFixed(1)
+                };
+
+                localStorage.setItem('virtueReviews', JSON.stringify(reviews));
+                localStorage.setItem('virtueReviewDate', today);
+
+                // 同步到云端
+                syncVirtueToCloud(today, areaResults, totalScore, totalMax);
+
+                renderVirtueResult(areaResults, totalScore, totalMax);
+            }
+
+            // 同步美德复盘到云端
+            async function syncVirtueToCloud(date, areaResults, totalScore, totalMax) {
+                if (!supabase) {
+                    console.log('No supabase, skip cloud sync');
+                    return;
+                }
+
+                var userId = window.getCurrentUserId();
+                if (!userId) {
+                    console.log('No user logged in, skip cloud sync');
+                    return;
+                }
+
+                // 获取周期信息
+                var cycleData = JSON.parse(localStorage.getItem('virtueCycleData') || '{"cycleCount":1}');
+
+                var areas = currentVirtueAreas.map(function(a) { return a.id; });
+                var averageScore = (totalScore / totalMax * 5).toFixed(1);
+
+                try {
+                    // 准备结果数据（只保留评分，不包含详细答案）
+                    var results = {};
+                    Object.keys(areaResults).forEach(function(areaId) {
+                        var r = areaResults[areaId];
+                        results[areaId] = {
+                            area: r.area,
+                            icon: r.icon,
+                            color: r.color,
+                            score: r.score,
+                            maxScore: r.maxScore,
+                            percentage: r.percentage
+                        };
+                    });
+
+                    const { error } = await supabase.from('virtue_reviews').upsert({
+                        user_id: userId,
+                        date: date,
+                        areas: areas,
+                        results: results,
+                        total_score: totalScore,
+                        total_max: totalMax,
+                        average_score: parseFloat(averageScore),
+                        cycle_count: cycleData.cycleCount || 1
+                    }, {
+                        onConflict: 'user_id,date'
+                    });
+
+                    if (error) {
+                        console.error('Sync virtue failed', error);
+                    } else {
+                        console.log('Virtue synced to cloud');
+                    }
+                } catch(e) {
+                    console.error('Sync virtue error', e);
+                }
+            }
+
+            // 渲染结果
+            function renderVirtueResult(areaResults, totalScore, totalMax) {
+                var body = document.getElementById('dailyReviewBody');
+                var avgScore = (totalScore / totalMax * 5).toFixed(1);
+                var percentage = Math.round(totalScore / totalMax * 100);
+
+                // 获取周期信息
+                var cycleData = JSON.parse(localStorage.getItem('virtueCycleData') || '{"usedAreas":[],"cycleCount":0}');
+                var currentCycle = cycleData.cycleCount || 0;
+
+                var html = '<div style="text-align:center;padding:10px;">' +
+                    '<div style="font-size:48px;margin-bottom:16px;">✨</div>' +
+                    '<div style="font-size:20px;color:#5D4037;font-weight:600;margin-bottom:8px;">今日复盘已完成！</div>' +
+                    '<div style="font-size:36px;font-weight:700;color:#8B4513;margin-bottom:4px;">' + percentage + '%</div>' +
+                    '<div style="font-size:14px;color:#8D6E63;margin-bottom:8px;">综合评分 ' + avgScore + '/5</div>' +
+                    '<div style="font-size:12px;color:#8D6E63;margin-bottom:16px;padding:8px;background:#F5F5F5;display:inline-block;border-radius:20px;">第 ' + currentCycle + ' / 4 轮 · 周期进度</div>' +
+                    '<div style="text-align:left;margin-bottom:20px;">';
+
+                Object.keys(areaResults).forEach(function(areaId) {
+                    var r = areaResults[areaId];
+                    var standard = VIRTUE_STANDARDS[areaId] || {};
+                    var actionTip = standard.action || '';
+                    var advice = r.percentage >= 80 ? standard.excellent : r.percentage >= 60 ? standard.good : standard.needImprovement;
+
+                    html +=
+                        '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F5F5F5;border-radius:8px;margin-bottom:8px;cursor:pointer;" onclick="toggleVirtueDetail(this)">' +
+                            '<span style="font-size:20px;">' + r.icon + '</span>' +
+                            '<div style="flex:1;">' +
+                                '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+                                    '<span style="font-size:14px;color:#5D4037;font-weight:600;">' + r.area + '</span>' +
+                                    '<span style="font-size:14px;color:' + r.color + ';font-weight:600;">' + r.score + '/25</span>' +
+                                '</div>' +
+                                '<div style="background:#E0E0E0;height:4px;border-radius:2px;">' +
+                                    '<div style="background:' + r.color + ';height:4px;border-radius:2px;width:' + r.percentage + '%;"></div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<span style="color:#8D6E63;">▼</span>' +
+                        '</div>' +
+                        '<div style="display:none;padding:12px;background:#FAFAFA;border-radius:8px;margin-bottom:12px;font-size:12px;color:#5D4037;" class="virtue-detail">' +
+                            '<div style="font-weight:600;margin-bottom:8px;">📋 评分详情</div>';
+                    r.answers.forEach(function(a, i) {
+                        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #EEE;"><span>' + (i+1) + '. ' + a.level + '</span><span style="font-weight:600;color:' + (a.score >= 4 ? '#4CAF50' : a.score >= 3 ? '#FF9800' : '#F44336') + ';">' + a.score + '分</span></div>';
+                    });
+                    html += '</div>' +
+                        '<div style="display:none;padding:10px;background:' + r.color + '15;border-left:3px solid ' + r.color + ';border-radius:4px;margin-bottom:12px;font-size:12px;color:#5D4037;" class="virtue-detail">' +
+                            '<div style="font-weight:600;margin-bottom:4px;">📈 实践建议</div>' +
+                            '<div>' + advice + '</div>' +
+                            (actionTip ? '<div style="margin-top:8px;color:#8B4513;font-weight:600;">🎯 ' + actionTip + '</div>' : '') +
+                        '</div>';
+                });
+
+                html += '</div>' +
+                    '<button class="btn-ripple btn-active" onclick="showVirtueStats()" style="width:100%;padding:12px;background:#F5F5F5;border:none;border-radius:10px;color:#5D4037;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;">📊 查看统计</button>' +
+                    '<button class="btn-ripple btn-active" onclick="closeAncientModal(\'dailyReviewModal\')" style="width:100%;padding:12px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">太棒了</button>' +
+                    '</div>';
+
+                body.innerHTML = html;
+            }
+
+            // 切换详情显示
+            window.toggleVirtueDetail = function(el) {
+                var detail = el.nextElementSibling;
+                var arrow = el.querySelector('span:last-child');
+                if (detail.style.display === 'none') {
+                    detail.style.display = 'block';
+                    arrow.textContent = '▲';
+                } else {
+                    detail.style.display = 'none';
+                    arrow.textContent = '▼';
+                }
+            };
+
+            // 显示统计
+            window.showVirtueStats = function() {
+                var reviews = JSON.parse(localStorage.getItem('virtueReviews') || '{}');
+                var dates = Object.keys(reviews).sort().reverse().slice(0, 7);
+                var body = document.getElementById('dailyReviewBody');
+
+                // 获取周期信息
+                var cycleData = JSON.parse(localStorage.getItem('virtueCycleData') || '{"usedAreas":[],"cycleCount":0}');
+                var currentCycle = cycleData.cycleCount || 0;
+
+                // 计算统计数据
+                var totalDays = dates.length;
+                var totalScoreSum = 0;
+                var totalMaxSum = 0;
+                var streak = calculateStreak(reviews);
+
+                dates.forEach(function(date) {
+                    totalScoreSum += reviews[date].totalScore;
+                    totalMaxSum += reviews[date].totalMax;
+                });
+
+                var avgPercentage = totalDays > 0 ? Math.round(totalScoreSum / totalMaxSum * 100) : 0;
+                var avgScore = totalDays > 0 ? (totalScoreSum / totalMaxSum * 5).toFixed(1) : 0;
+
+                var html = '<div style="text-align:center;padding:10px;">' +
+                    '<div style="font-size:20px;color:#5D4037;font-weight:600;margin-bottom:20px;">📊 统计概览</div>' +
+                    '<div style="background:#F5F5F5;padding:12px;border-radius:8px;margin-bottom:16px;text-align:center;">' +
+                        '<span style="font-size:14px;color:#8B4513;font-weight:600;">第 ' + currentCycle + ' / 4 轮</span>' +
+                        '<span style="font-size:12px;color:#8D6E63;margin-left:8px;">周期进度</span>' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">' +
+                        '<div style="background:linear-gradient(135deg,#FF6B6B20,#FF6B6B40);padding:16px;border-radius:12px;text-align:center;">' +
+                            '<div style="font-size:24px;font-weight:700;color:#FF6B6B;">' + streak + '</div>' +
+                            '<div style="font-size:12px;color:#8D6E63;">连续打卡</div>' +
+                        '</div>' +
+                        '<div style="background:linear-gradient(135deg,#4ECDC420,#4ECDC440);padding:16px;border-radius:12px;text-align:center;">' +
+                            '<div style="font-size:24px;font-weight:700;color:#4ECDC4;">' + avgPercentage + '%</div>' +
+                            '<div style="font-size:12px;color:#8D6E63;">平均得分</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="text-align:left;margin-bottom:20px;">' +
+                        '<div style="font-weight:600;color:#5D4037;margin-bottom:12px;">📈 得分趋势</div>';
+
+                // 绘制简单的柱状图
+                dates.reverse().forEach(function(date) {
+                    var r = reviews[date];
+                    var height = (r.totalScore / r.totalMax * 100);
+                    var day = new Date(date).getDate();
+                    html +=
+                        '<div style="display:flex;align-items:flex-end;gap:4px;margin-bottom:8px;">' +
+                            '<span style="font-size:10px;color:#8D6E63;width:20px;">' + day + '日</span>' +
+                            '<div style="flex:1;background:#F5F5F5;height:40px;border-radius:4px;position:relative;">' +
+                                '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(90deg,#8B4513,#A0522D);height:' + height + '%;border-radius:4px;"></div>' +
+                            '</div>' +
+                            '<span style="font-size:10px;color:#8B4513;width:32px;text-align:right;">' + Math.round(height) + '%</span>' +
+                        '</div>';
+                });
+
+                html += '</div>' +
+                    '<button class="btn-ripple btn-active" onclick="closeAncientModal(\'dailyReviewModal\')" style="width:100%;padding:12px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;">关闭</button>' +
+                    '</div>';
+
+                body.innerHTML = html;
+            };
+
+            // 计算连续打卡天数
+            function calculateStreak(reviews) {
+                var dates = Object.keys(reviews).sort().reverse();
+                if (dates.length === 0) return 0;
+
+                var today = new Date().toISOString().split('T')[0];
+                var streak = 0;
+                var currentDate = new Date(today);
+
+                // 如果今天还没打卡，从昨天开始算
+                if (!reviews[today]) {
+                    currentDate.setDate(currentDate.getDate() - 1);
+                }
+
+                while (true) {
+                    var dateStr = currentDate.toISOString().split('T')[0];
+                    if (reviews[dateStr]) {
+                        streak++;
+                        currentDate.setDate(currentDate.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                }
+
+                return streak;
+            }
 
             // 检查是否需要显示每日复盘
             window.checkDailyReview();
+
+            // 检查登录状态
+            (async function initAuth() {
+                if (supabase) {
+                    var user = await checkAuthState();
+                    var loginText = document.getElementById('loginMenuText');
+                    if (loginText) {
+                        if (user) {
+                            loginText.textContent = '已登录';
+                        } else {
+                            loginText.textContent = '登录';
+                        }
+                    }
+                }
+            })();
 
             // 显示添加Flag弹窗
             window.showAddFlagModal = function() {
@@ -4714,6 +5429,8 @@ function initFlagApp(){
             window.showAllMemoryCards = showAllMemoryCards;
             window.showAddFlagModal = showAddFlagModal;
             window.showAddMemberModal = showAddMemberModal;
+            window.showLoginModal = showLoginModal;
+            window.showLeaderboard = showLeaderboard;
             console.log('Functions exposed to window');
         })();
 

@@ -794,17 +794,8 @@ window.addEventListener('load', function() {
                 setTimeout(function() {
                     switch(action) {
                         case 'dailyReview':
-                            console.log('Calling showDailyReview, function:', window.showDailyReview);
-                            if(window.showDailyReview) {
-                                window.showDailyReview();
-                            } else {
-                                // 使用备用函数
-                                var modal = document.getElementById('dailyReviewModal');
-                                if(modal) {
-                                    modal.style.display = 'flex';
-                                    modal.classList.add('show');
-                                }
-                            }
+                            // 跳转到简化版复盘页面
+                            window.location.href = 'review-simple.html';
                             break;
                         case 'myMemory':
                             if(window.showMyMemoryCard) window.showMyMemoryCard();

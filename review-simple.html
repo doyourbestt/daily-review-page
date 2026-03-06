@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>今日复盘</title>
+    
+    <!-- 小红书风格配色 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --xhs-red: #FF2442;
+            --xhs-red-light: #FFE5EA;
+            --xhs-bg: #FFFFFF;
+            --xhs-bg-secondary: #F8F8F8;
+            --xhs-text: #333333;
+            --xhs-text-secondary: #666666;
+            --xhs-text-light: #999999;
+            --xhs-border: #EEEEEE;
+            --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+            background: var(--xhs-bg-secondary);
+            color: var(--xhs-text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部导航 */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--xhs-bg);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--xhs-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-close {
+            font-size: 24px;
+            color: var(--xhs-text-secondary);
+            cursor: pointer;
+        }
+        
+        /* 进度条 */
+        .progress-bar {
+            height: 3px;
+            background: var(--xhs-border);
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--xhs-red);
+            transition: width 0.3s ease;
+        }
+        
+        /* 内容区域 */
+        .content {
+            padding: 20px;
+        }
+        
+        /* 步骤指示 */
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--xhs-text-secondary);
+            font-size: 14px;
+        }
+        
+        .step-indicator .step {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--xhs-bg-secondary);
+            border-radius: 12px;
+            margin: 0 4px;
+        }
+        
+        .step-indicator .step.active {
+            background: var(--xhs-red);
+            color: white;
+        }
+        
+        /* 领域选择 */
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--xhs-text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        .areas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .area-card {
+            background: var(--xhs-bg);
+            border: 2px solid var(--xhs-border);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .area-card:hover {
+            border-color: var(--xhs-red);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+        
+        .area-card.selected {
+            border-color: var(--xhs-red);
+            background: var(--xhs-red-light);
+        }
+        
+        .area-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .area-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .area-check {
+            display: none;
+            margin-top: 8px;
+            color: var(--xhs-red);
+            font-size: 12px;
+        }
+        
+        .area-card.selected .area-check {
+            display: block;
+        }
+        
+        /* 评分问题 */
+        .question-card {
+            background: var(--xhs-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-card);
+        }
+        
+        .question-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        
+        .option-btn {
+            padding: 12px 4px;
+            border: 2px solid var(--xhs-border);
+            border-radius: 12px;
+            background: var(--xhs-bg);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .option-btn:hover {
+            border-color: var(--xhs-red);
+        }
+        
+        .option-btn.selected {
+            border-color: var(--xhs-red);
+            background: var(--xhs-red);
+            color: white;
+        }
+        
+        /* 领域头部 */
+        .area-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--xhs-border);
+        }
+        
+        .area-header-icon {
+            font-size: 32px;
+        }
+        
+        .area-header-info h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        
+        .area-header-info p {
+            font-size: 14px;
+            color: var(--xhs-text-secondary);
+        }
+        
+        /* 感想输入 */
+        .thoughts-section {
+            margin-top: 24px;
+        }
+        
+        .thoughts-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--xhs-border);
+            border-radius: 12px;
+            font-size: 14px;
+            resize: none;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .thoughts-input:focus {
+            outline: none;
+            border-color: var(--xhs-red);
+        }
+        
+        /* 图片上传 */
+        .image-upload {
+            margin-top: 16px;
+            border: 2px dashed var(--xhs-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .image-upload:hover {
+            border-color: var(--xhs-red);
+        }
+        
+        .image-upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .image-upload-text {
+            font-size: 14px;
+            color: var(--xhs-text-secondary);
+        }
+        
+        .image-preview {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .image-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        /* 卡片预览 */
+        .preview-card {
+            background: var(--xhs-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 20px;
+        }
+        
+        .preview-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--xhs-border);
+        }
+        
+        .preview-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--xhs-red-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-user-info h4 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .preview-user-info p {
+            font-size: 12px;
+            color: var(--xhs-text-light);
+        }
+        
+        .preview-content {
+            padding: 16px;
+        }
+        
+        .preview-achievements {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .achievement-tag {
+            padding: 6px 12px;
+            background: var(--xhs-bg-secondary);
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .preview-scores {
+            background: var(--xhs-bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .score-row:not(:last-child) {
+            border-bottom: 1px solid var(--xhs-border);
+        }
+        
+        .score-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .score-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--xhs-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        
+        .preview-thoughts {
+            font-size: 14px;
+            color: var(--xhs-text);
+            line-height: 1.6;
+            padding: 12px;
+            background: var(--xhs-bg-secondary);
+            border-radius: 8px;
+        }
+        
+        .preview-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+        }
+        
+        .preview-footer {
+            padding: 16px;
+            border-top: 1px solid var(--xhs-border);
+            display: flex;
+            gap: 24px;
+        }
+        
+        .preview-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--xhs-text-secondary);
+            font-size: 14px;
+        }
+        
+        /* 底部按钮 */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--xhs-bg);
+            padding: 16px 20px;
+            border-top: 1px solid var(--xhs-border);
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn-secondary {
+            background: var(--xhs-bg-secondary);
+            color: var(--xhs-text);
+        }
+        
+        .btn-primary {
+            background: var(--xhs-red);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #E61E3C;
+        }
+        
+        .btn-primary:disabled {
+            background: var(--xhs-border);
+            cursor: not-allowed;
+        }
+        
+        /* 隐藏步骤 */
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="header-title">今日复盘</div>
+        <div class="header-close" onclick="window.history.back()">✕</div>
+    </div>
+    
+    <!-- 进度条 -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 33%"></div>
+    </div>
+    
+    <!-- 内容区域 -->
+    <div class="content">
+        <!-- 步骤1：选择领域 -->
+        <div class="step-content active" id="step1">
+            <div class="step-indicator">
+                <span class="step active">1. 选领域</span>
+                <span class="step">2. 评分</span>
+                <span class="step">3. 发布</span>
+            </div>
+            
+            <h2 class="section-title">今天想复盘哪些方面？</h2>
+            <p class="section-subtitle">选择1-3个领域进行复盘</p>
+            
+            <div class="areas-grid" id="areasGrid">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 步骤2：快速评分 -->
+        <div class="step-content" id="step2">
+            <div class="step-indicator">
+                <span class="step">1. 选领域</span>
+                <span class="step active">2. 评分</span>
+                <span class="step">3. 发布</span>
+            </div>
+            
+            <div id="questionsContainer">
+                <!-- 由 JS 动态生成 -->
+            </div>
+            
+            <div class="thoughts-section">
+                <h3 class="section-title">说点什么？（可选）</h3>
+                <textarea class="thoughts-input" id="thoughtsInput" placeholder="记录今天的感想、收获、明日计划..."></textarea>
+                
+                <div class="image-upload" onclick="document.getElementById('imageInput').click()">
+                    <div class="image-upload-icon">📷</div>
+                    <div class="image-upload-text">点击添加图片（可选）</div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" multiple style="display:none" onchange="handleImageUpload(event)">
+                <div class="image-preview" id="imagePreview"></div>
+            </div>
+        </div>
+        
+        <!-- 步骤3：预览发布 -->
+        <div class="step-content" id="step3">
+            <div class="step-indicator">
+                <span class="step">1. 选领域</span>
+                <span class="step">2. 评分</span>
+                <span class="step active">3. 发布</span>
+            </div>
+            
+            <h2 class="section-title">🎉 复盘完成！</h2>
+            <p class="section-subtitle">预览你的成就卡片</p>
+            
+            <div class="preview-card" id="previewCard">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部按钮 -->
+    <div class="bottom-actions">
+        <button class="btn btn-secondary" id="prevBtn" style="display:none" onclick="prevStep()">上一步</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 配置和题库 -->
+    <script src="js/config.js"></script>
+    <script src="js/virtue-questions.js"></script>
+    
+    <script>
+        // ==================== 状态管理 ====================
+        let currentStep = 1;
+        let selectedAreas = [];
+        let answers = {};
+        let thoughts = '';
+        let images = [];
+        
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            initAreas();
+            initSupabase();
+        });
+        
+        // 初始化领域选择
+        function initAreas() {
+            const grid = document.getElementById('areasGrid');
+            if (!VIRTUE_CONFIG || !VIRTUE_CONFIG.areas) {
+                console.error('VIRTUE_CONFIG not loaded');
+                return;
+            }
+            
+            VIRTUE_CONFIG.areas.forEach(area => {
+                const card = document.createElement('div');
+                card.className = 'area-card';
+                card.dataset.id = area.id;
+                card.innerHTML = `
+                    <div class="area-icon">${area.icon}</div>
+                    <div class="area-name">${area.name}</div>
+                    <div class="area-check">✓ 已选择</div>
+                `;
+                card.onclick = () => toggleArea(area.id);
+                grid.appendChild(card);
+            });
+        }
+        
+        // 切换领域选择
+        function toggleArea(areaId) {
+            const card = document.querySelector(`[data-id="${areaId}"]`);
+            const index = selectedAreas.indexOf(areaId);
+            
+            if (index > -1) {
+                selectedAreas.splice(index, 1);
+                card.classList.remove('selected');
+            } else if (selectedAreas.length < 3) {
+                selectedAreas.push(areaId);
+                card.classList.add('selected');
+            } else {
+                showToast('最多选择3个领域');
+            }
+        }
+        
+        // ==================== 步骤导航 ====================
+        function nextStep() {
+            if (currentStep === 1) {
+                if (selectedAreas.length === 0) {
+                    showToast('请至少选择1个领域');
+                    return;
+                }
+                generateQuestions();
+            } else if (currentStep === 2) {
+                if (!validateAnswers()) {
+                    showToast('请完成所有评分');
+                    return;
+                }
+                thoughts = document.getElementById('thoughtsInput').value;
+                generatePreview();
+            } else if (currentStep === 3) {
+                submitReview();
+                return;
+            }
+            
+            currentStep++;
+            updateUI();
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+        
+        function updateUI() {
+            // 更新步骤显示
+            document.querySelectorAll('.step-content').forEach((el, i) => {
+                el.classList.toggle('active', i + 1 === currentStep);
+            });
+            
+            // 更新进度条
+            const progress = (currentStep / 3) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            // 更新按钮
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+            nextBtn.textContent = currentStep === 3 ? '发布到社区' : '下一步';
+        }
+        
+        // ==================== 生成问题 ====================
+        function generateQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            selectedAreas.forEach(areaId => {
+                const area = VIRTUE_CONFIG.areas.find(a => a.id === areaId);
+                const questions = VIRTUE_CONFIG.questions[areaId];
+                
+                if (!questions) return;
+                
+                answers[areaId] = {};
+                
+                const areaSection = document.createElement('div');
+                areaSection.innerHTML = `
+                    <div class="area-header">
+                        <div class="area-header-icon">${area.icon}</div>
+                        <div class="area-header-info">
+                            <h3>${area.name}</h3>
+                            <p>${questions.length}个问题</p>
+                        </div>
+                    </div>
+                `;
+                
+                questions.forEach((q, qIndex) => {
+                    const questionCard = document.createElement('div');
+                    questionCard.className = 'question-card';
+                    questionCard.innerHTML = `
+                        <div class="question-title">${qIndex + 1}. ${q.q}</div>
+                        <div class="options-grid">
+                            ${q.levels.map((level, lIndex) => `
+                                <button class="option-btn" 
+                                        data-area="${areaId}" 
+                                        data-question="${qIndex}" 
+                                        data-value="${lIndex + 1}"
+                                        onclick="selectOption(this, '${areaId}', ${qIndex}, ${lIndex + 1})">
+                                    ${level}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                    areaSection.appendChild(questionCard);
+                });
+                
+                container.appendChild(areaSection);
+            });
+        }
+        
+        // 选择选项
+        function selectOption(btn, areaId, questionIndex, value) {
+            // 移除同组其他选中
+            btn.parentElement.querySelectorAll('.option-btn').forEach(b => {
+                b.classList.remove('selected');
+            });
+            
+            // 选中当前
+            btn.classList.add('selected');
+            
+            // 保存答案
+            if (!answers[areaId]) answers[areaId] = {};
+            answers[areaId][questionIndex] = value;
+        }
+        
+        // 验证答案
+        function validateAnswers() {
+            for (const areaId of selectedAreas) {
+                const questions = VIRTUE_CONFIG.questions[areaId];
+                if (!questions) continue;
+                
+                for (let i = 0; i < questions.length; i++) {
+                    if (!answers[areaId] || !answers[areaId][i]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        // ==================== 图片上传 ====================
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('imagePreview');
+            
+            for (const file of files) {
+                if (images.length >= 3) {
+                    showToast('最多上传3张图片');
+                    break;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    images.push(e.target.result);
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // ==================== 生成预览 ====================
+        function generatePreview() {
+            const previewCard = document.getElementById('previewCard');
+            
+            // 计算总分
+            let totalScore = 0;
+            let totalMax = 0;
+            const achievements = [];
+            const scores = [];
+            
+            selectedAreas.forEach(areaId => {
+                const area = VIRTUE_CONFIG.areas.find(a => a.id === areaId);
+                const areaAnswers = answers[areaId];
+                const questions = VIRTUE_CONFIG.questions[areaId];
+                
+                if (!areaAnswers || !questions) return;
+                
+                let areaTotal = 0;
+                let areaCount = 0;
+                
+                Object.values(areaAnswers).forEach(v => {
+                    areaTotal += v;
+                    areaCount++;
+                    totalMax += 5;
+                });
+                
+                totalScore += areaTotal;
+                
+                const avgScore = areaCount > 0 ? (areaTotal / areaCount).toFixed(1) : 0;
+                scores.push({
+                    icon: area.icon,
+                    name: area.name,
+                    score: avgScore,
+                    color: area.color
+                });
+                
+                // 获取成就
+                const avgVal = Math.round(avgScore);
+                if (VIRTUE_CONFIG.achievements && VIRTUE_CONFIG.achievements[areaId]) {
+                    const achievement = VIRTUE_CONFIG.achievements[areaId][avgVal];
+                    if (achievement) {
+                        achievements.push(achievement);
+                    }
+                }
+            });
+            
+            const overallScore = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+            
+            // 获取用户名
+            const userName = window.supabaseClient?.currentUser?.email?.split('@')[0] || '我';
+            
+            // 生成卡片HTML
+            previewCard.innerHTML = `
+                <div class="preview-header">
+                    <div class="preview-avatar">👤</div>
+                    <div class="preview-user-info">
+                        <h4>${userName}</h4>
+                        <p>刚刚</p>
+                    </div>
+                </div>
+                
+                <div class="preview-content">
+                    ${achievements.length > 0 ? `
+                        <div class="preview-achievements">
+                            ${achievements.map(a => `
+                                <div class="achievement-tag">
+                                    ${a.icon} ${a.text}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="preview-scores">
+                        ${scores.map(s => `
+                            <div class="score-row">
+                                <div class="score-label">
+                                    <span>${s.icon}</span>
+                                    <span>${s.name}</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${s.score * 20}%; background: ${s.color}"></div>
+                                </div>
+                                <span>${s.score}</span>
+                            </div>
+                        `).join('')}
+                        <div class="score-row" style="margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--xhs-border);">
+                            <div class="score-label">
+                                <span>📊</span>
+                                <strong>总分</strong>
+                            </div>
+                            <span style="font-size: 18px; font-weight: 600; color: var(--xhs-red);">${overallScore}/100</span>
+                        </div>
+                    </div>
+                    
+                    ${thoughts ? `
+                        <div class="preview-thoughts">${thoughts}</div>
+                    ` : ''}
+                </div>
+                
+                ${images.length > 0 ? `
+                    <img class="preview-image" src="${images[0]}" alt="配图">
+                ` : ''}
+                
+                <div class="preview-footer">
+                    <div class="preview-action">❤️ 0</div>
+                    <div class="preview-action">💬 0</div>
+                    <div class="preview-action">⭐ 收藏</div>
+                </div>
+            `;
+        }
+        
+        // ==================== 提交复盘 ====================
+        async function submitReview() {
+            const btn = document.getElementById('nextBtn');
+            btn.disabled = true;
+            btn.textContent = '发布中...';
+            
+            try {
+                // 准备数据
+                const today = new Date().toISOString().split('T')[0];
+                
+                // 计算分数
+                let totalScore = 0;
+                let totalMax = 0;
+                const results = {};
+                
+                selectedAreas.forEach(areaId => {
+                    const areaAnswers = answers[areaId];
+                    if (!areaAnswers) return;
+                    
+                    let areaTotal = 0;
+                    let areaCount = 0;
+                    
+                    Object.values(areaAnswers).forEach(v => {
+                        areaTotal += v;
+                        areaCount++;
+                        totalMax += 5;
+                    });
+                    
+                    totalScore += areaTotal;
+                    results[areaId] = {
+                        answers: areaAnswers,
+                        total: areaTotal,
+                        max: areaCount * 5,
+                        average: areaCount > 0 ? (areaTotal / areaCount).toFixed(1) : 0
+                    };
+                });
+                
+                const reviewData = {
+                    date: today,
+                    areas: selectedAreas,
+                    results: results,
+                    total_score: totalScore,
+                    total_max: totalMax,
+                    average_score: totalMax > 0 ? (totalScore / selectedAreas.length / 5 * 5).toFixed(1) : 0,
+                    thoughts: thoughts,
+                    images: images
+                };
+                
+                // 保存到 Supabase 或 LocalStorage
+                let savedToCloud = false;
+                
+                if (window.supabaseClient && window.supabaseClient.initialized) {
+                    try {
+                        const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
+                        
+                        if (!userError && user) {
+                            const { error } = await window.supabaseClient
+                                .from('virtue_reviews')
+                                .upsert([{
+                                    user_id: user.id,
+                                    date: today,
+                                    areas: selectedAreas,
+                                    results: results,
+                                    total_score: totalScore,
+                                    total_max: totalMax,
+                                    average_score: parseFloat(reviewData.average_score)
+                                }]);
+                            
+                            if (!error) {
+                                savedToCloud = true;
+                                console.log('✅ Saved to Supabase');
+                            } else {
+                                console.error('Supabase insert error:', error);
+                            }
+                        } else {
+                            console.log('User not logged in, saving locally only');
+                        }
+                    } catch (supabaseError) {
+                        console.error('Supabase error:', supabaseError);
+                    }
+                }
+                
+                // 始终保存到 LocalStorage 作为备份
+                const localReviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
+                localReviews[today] = reviewData;
+                localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
+                console.log('✅ Saved to LocalStorage');
+                
+                // 显示成功消息
+                const message = savedToCloud ? '✅ 发布成功！' : '✅ 已保存到本地！（登录后可同步到云端）';
+                showToast(message);
+                
+                // 2秒后跳转
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Submit error:', error);
+                showToast('发布失败，请重试');
+                btn.disabled = false;
+                btn.textContent = '发布到社区';
+            }
+        }
+        
+        // ==================== Supabase 初始化 ====================
+        function initSupabase() {
+            // 先检查配置是否存在
+            if (typeof window.SUPABASE_CONFIG === 'undefined') {
+                console.warn('SUPABASE_CONFIG not found, using local storage only');
+                return;
+            }
+            
+            if (!window.SUPABASE_CONFIG.SUPABASE_URL || !window.SUPABASE_CONFIG.SUPABASE_ANON_KEY) {
+                console.warn('Supabase config incomplete, using local storage only');
+                return;
+            }
+            
+            // 检查 Supabase SDK 是否加载
+            if (typeof supabase === 'undefined') {
+                console.warn('Supabase SDK not loaded, using local storage only');
+                return;
+            }
+            
+            try {
+                const { createClient } = supabase;
+                window.supabaseClient = createClient(
+                    window.SUPABASE_CONFIG.SUPABASE_URL,
+                    window.SUPABASE_CONFIG.SUPABASE_ANON_KEY
+                );
+                window.supabaseClient.initialized = true;
+                console.log('✅ Supabase client initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+            }
+        }
+        
+        // ==================== 工具函数 ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

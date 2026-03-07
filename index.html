@@ -2275,6 +2275,17 @@ function initFlagApp(){
                     console.error('Failed to initialize app:', error);
                     showToast('加载失败，请刷新页面');
                 }
+                
+                // 检查 URL 参数，如果 show_review=1，自动打开复盘弹窗
+                setTimeout(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('show_review') === '1') {
+                        console.log('Auto-opening review dialog');
+                        if (window.showDailyReview) {
+                            window.showDailyReview();
+                        }
+                    }
+                }, 1000);
             }
 
             // Swipe Navigation

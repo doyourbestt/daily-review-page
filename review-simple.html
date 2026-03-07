@@ -930,64 +930,37 @@
                     total_score: totalScore,
                     total_max: totalMax,
                     average_score: totalMax > 0 ? (totalScore / selectedAreas.length / 5 * 5).toFixed(1) : 0,
-                    thoughts: thoughts,
-                    images: images
+                    thoughts: thoughts || '',
+                    images: images || []
                 };
                 
-                // 保存到 Supabase 或 LocalStorage
-                let savedToCloud = false;
-                
-                if (window.supabaseClient && window.supabaseClient.initialized) {
-                    try {
-                        const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
-                        
-                        if (!userError && user) {
-                            const { error } = await window.supabaseClient
-                                .from('virtue_reviews')
-                                .upsert([{
-                                    user_id: user.id,
-                                    date: today,
-                                    areas: selectedAreas,
-                                    results: results,
-                                    total_score: totalScore,
-                                    total_max: totalMax,
-                                    average_score: parseFloat(reviewData.average_score)
-                                }]);
-                            
-                            if (!error) {
-                                savedToCloud = true;
-                                console.log('✅ Saved to Supabase');
-                            } else {
-                                console.error('Supabase insert error:', error);
-                            }
-                        } else {
-                            console.log('User not logged in, saving locally only');
-                        }
-                    } catch (supabaseError) {
-                        console.error('Supabase error:', supabaseError);
-                    }
+                // 始终保存到 LocalStorage
+                try {
+                    const localReviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
+                    localReviews[today] = reviewData;
+                    localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
+                    console.log('✅ Saved to LocalStorage');
+                    
+                    // 显示成功消息和按钮
+                    showToast('✅ 发布成功！');
+                    
+                    // 显示"查看我的复盘"按钮
+                    btn.style.display = 'none';
+                    const viewBtn = document.createElement('button');
+                    viewBtn.className = 'btn btn-primary';
+                    viewBtn.style.marginTop = '10px';
+                    viewBtn.textContent = '📋 查看我的复盘';
+                    viewBtn.onclick = () => {
+                        window.location.href = 'index.html';
+                    };
+                    btn.parentNode.appendChild(viewBtn);
+                    
+                } catch (localStorageError) {
+                    console.error('LocalStorage error:', localStorageError);
+                    showToast('发布失败：无法保存数据');
+                    btn.disabled = false;
+                    btn.textContent = '发布到社区';
                 }
-                
-                // 始终保存到 LocalStorage 作为备份
-                const localReviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
-                localReviews[today] = reviewData;
-                localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
-                console.log('✅ Saved to LocalStorage');
-                
-                // 显示成功消息和按钮
-                const message = savedToCloud ? '✅ 发布成功！' : '✅ 已保存到本地！（登录后可同步到云端）';
-                showToast(message);
-
-                // 显示"查看我的复盘"按钮，留在当前页
-                btn.style.display = 'none';
-                const viewBtn = document.createElement('button');
-                viewBtn.className = 'btn btn-primary';
-                viewBtn.style.marginTop = '10px';
-                viewBtn.textContent = '📋 查看我的复盘';
-                viewBtn.onclick = () => {
-                    window.location.href = 'index.html';
-                };
-                btn.parentNode.appendChild(viewBtn);
                 
             } catch (error) {
                 console.error('Submit error:', error);

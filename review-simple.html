@@ -936,6 +936,15 @@
                 
                 // 始终保存到 LocalStorage
                 try {
+                    // 检查 localStorage 是否可用
+                    if (typeof localStorage === 'undefined') {
+                        throw new Error('浏览器不支持本地存储');
+                    }
+                    
+                    // 测试 localStorage 是否可写
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    
                     const localReviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
                     localReviews[today] = reviewData;
                     localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
@@ -957,7 +966,7 @@
                     
                 } catch (localStorageError) {
                     console.error('LocalStorage error:', localStorageError);
-                    showToast('发布失败：无法保存数据');
+                    showToast('发布失败：' + localStorageError.message);
                     btn.disabled = false;
                     btn.textContent = '发布到社区';
                 }

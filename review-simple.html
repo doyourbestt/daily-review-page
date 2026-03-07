@@ -974,14 +974,20 @@
                 localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
                 console.log('✅ Saved to LocalStorage');
                 
-                // 显示成功消息
+                // 显示成功消息和按钮
                 const message = savedToCloud ? '✅ 发布成功！' : '✅ 已保存到本地！（登录后可同步到云端）';
                 showToast(message);
-                
-                // 2秒后跳转
-                setTimeout(() => {
+
+                // 显示"查看我的复盘"按钮，留在当前页
+                btn.style.display = 'none';
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'btn btn-primary';
+                viewBtn.style.marginTop = '10px';
+                viewBtn.textContent = '📋 查看我的复盘';
+                viewBtn.onclick = () => {
                     window.location.href = 'index.html';
-                }, 2000);
+                };
+                btn.parentNode.appendChild(viewBtn);
                 
             } catch (error) {
                 console.error('Submit error:', error);

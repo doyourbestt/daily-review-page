@@ -1938,16 +1938,14 @@ function initFlagApp(){
     <div class="ancient-modal" id="loginModal" style="display:none;">
         <div class="ancient-modal-content" style="max-width:380px;">
             <div class="ancient-modal-header">
-                <span class="ancient-modal-title" id="loginModalTitle">登录 / 注册</span>
+                <span class="ancient-modal-title" id="loginModalTitle">登录</span>
                 <button class="ancient-modal-close" onclick="closeAncientModal('loginModal')">×</button>
             </div>
             <div class="ancient-modal-body">
                 <div id="loginForm">
-                    <input type="text" id="loginEmail" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="邮箱地址">
-                    <input type="password" id="loginPassword" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="密码">
-                    <input type="text" id="loginDisplayName" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;display:none;" placeholder="显示名称">
-                    <button class="btn-ripple btn-active" onclick="doLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">登录</button>
-                    <button class="btn-ripple btn-active" onclick="doRegister()" style="width:100%;padding:14px;background:#F5F5F5;border:none;border-radius:10px;color:#5D4037;font-size:14px;cursor:pointer;margin-bottom:10px;">注册新账号</button>
+                    <input type="text" id="simpleLoginUsername" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="账号（如：小红）">
+                    <input type="password" id="simpleLoginPassword" style="width:100%;padding:14px;border:2px solid #D7CCC8;border-radius:10px;font-size:14px;box-sizing:border-box;margin-bottom:12px;background:#fff;" placeholder="密码">
+                    <button class="btn-ripple btn-active" onclick="doSimpleLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#8B4513,#A0522D);border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">登录</button>
                 </div>
                 <div id="loginSuccess" style="display:none;text-align:center;padding:20px;">
                     <div style="font-size:48px;margin-bottom:16px;">🎉</div>
@@ -2128,6 +2126,9 @@ function initFlagApp(){
 
     <!-- 美德题库配置 -->
     <script src="js/virtue-questions.js"></script>
+
+    <!-- 账号配置 -->
+    <script src="config/accounts.js"></script>
 
     <script>
         // ============== Polyfills ==============
@@ -3087,97 +3088,76 @@ function initFlagApp(){
                 document.getElementById('loginSuccess').style.display = 'none';
             };
 
-            // 执行登录
-            window.doLogin = async function() {
-                var email = document.getElementById('loginEmail').value.trim();
-                var password = document.getElementById('loginPassword').value.trim();
+            // 执行登录（使用简单账号密码系统）
+            window.doSimpleLogin = function() {
+                var username = document.getElementById('simpleLoginUsername').value.trim();
+                var password = document.getElementById('simpleLoginPassword').value.trim();
 
-                if (!email || !password) {
-                    alert('请输入邮箱和密码');
+                if (!username || !password) {
+                    alert('请输入账号和密码');
                     return;
                 }
 
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-
-                    if (error) throw error;
-
-                    currentUser = data.user;
-                    localStorage.setItem('virtue_user_id', data.user.id);
-
-                    // 显示成功
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('loginSuccess').style.display = 'block';
-                    document.getElementById('loginUserName').textContent = '欢迎，' + (data.user.email || '用户');
-
-                    setTimeout(function() {
-                        closeAncientModal('loginModal');
-                        showToast('登录成功！');
-                    }, 1500);
-
-                } catch(e) {
-                    alert('登录失败: ' + e.message);
-                }
-            };
-
-            // 执行注册
-            window.doRegister = async function() {
-                var email = document.getElementById('loginEmail').value.trim();
-                var password = document.getElementById('loginPassword').value.trim();
-                var displayName = document.getElementById('loginDisplayName').value.trim();
-
-                if (!email || !password) {
-                    alert('请输入邮箱和密码');
+                // 检查账号是否存在
+                if (!window.USER_ACCOUNTS || !window.USER_ACCOUNTS[username]) {
+                    alert('账号不存在');
                     return;
                 }
 
-                if (password.length < 6) {
-                    alert('密码长度至少6位');
+                // 检查密码是否正确
+                if (window.USER_ACCOUNTS[username] !== password) {
+                    alert('密码错误');
                     return;
                 }
 
-                try {
-                    const { data, error } = await supabase.auth.signUp({
-                        email: email,
-                        password: password,
-                        options: {
-                            data: {
-                                display_name: displayName || email.split('@')[0]
-                            }
-                        }
-                    });
+                // 登录成功
+                const userInfo = (window.USER_PROFILES && window.USER_PROFILES[username]) || {
+                    avatar: '😊',
+                    role: '成员',
+                    bio: ''
+                };
 
-                    if (error) throw error;
+                const user = {
+                    username: username,
+                    avatar: userInfo.avatar,
+                    role: userInfo.role,
+                    bio: userInfo.bio,
+                    loginTime: new Date().toISOString()
+                };
 
-                    alert('注册成功！请查收邮箱验证链接（或直接登录）。');
-                    // 自动切换到登录
-                    document.getElementById('loginPassword').focus();
+                // 保存到 localStorage
+                localStorage.setItem('daily_review_session', JSON.stringify(user));
 
-                } catch(e) {
-                    alert('注册失败: ' + e.message);
-                }
+                // 更新全局变量
+                currentUser = user;
+
+                // 显示成功消息
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('loginSuccess').style.display = 'block';
+                document.getElementById('loginUserName').textContent = '欢迎，' + username;
+
+                setTimeout(function() {
+                    closeAncientModal('loginModal');
+                    showToast('登录成功！');
+                }, 1500);
             };
 
             // 退出登录
-            window.doLogout = async function() {
-                if (!supabase) return;
-                await supabase.auth.signOut();
+            window.doLogout = function() {
+                localStorage.removeItem('daily_review_session');
                 currentUser = null;
-                localStorage.removeItem('virtue_user_id');
                 showToast('已退出登录');
+                location.reload();
             };
 
             // 获取当前用户ID
             window.getCurrentUserId = function() {
-                return currentUser ? currentUser.id : localStorage.getItem('virtue_user_id');
+                return currentUser ? currentUser.username : localStorage.getItem('virtue_user_id');
             };
 
             // 检查是否已登录
             window.isLoggedIn = function() {
-                return !!currentUser || !!localStorage.getItem('virtue_user_id');
+                return !!currentUser || !!localStorage.getItem('daily_review_session');
             };
 
             // ===== 排行榜功能 =====

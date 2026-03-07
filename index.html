@@ -2248,12 +2248,17 @@ function initFlagApp(){
                     buildPageDots();
 
                     // Initialize video based on device capability
+                    // 暂时注释掉视频加载，提高速度
+                    /*
                     if (isLowEndDevice) {
                         console.log('Low-end device detected, skipping video');
                         elements.heroVideo.style.display = 'none';
                     } else {
                         initVideo();
                     }
+                    */
+                    elements.heroVideo.style.display = 'none';
+                    console.log('Video disabled for faster loading');
                     
                     // Hide loading screen
                     setTimeout(() => {
@@ -4909,7 +4914,7 @@ function initFlagApp(){
                 // 下午5点后（17:00）
                 if (hour >= 17) {
                     var today = now.toISOString().split('T')[0];
-                    var lastReviewDate = localStorage.getItem('virtueReviewDate');
+                    var lastReviewDate = localStorage.getItem('virtue_review_date');
                     // 今天还没复盘
                     if (lastReviewDate !== today) {
                         setTimeout(function() {
@@ -4922,7 +4927,7 @@ function initFlagApp(){
             // 显示今日复盘
             window.showDailyReview = function() {
                 var today = new Date().toISOString().split('T')[0];
-                var lastReviewDate = localStorage.getItem('virtueReviewDate');
+                var lastReviewDate = localStorage.getItem('virtue_review_date');
 
                 // 如果今天已完成，显示统计
                 if (lastReviewDate === today) {
@@ -5078,7 +5083,7 @@ function initFlagApp(){
             // 完成复盘
             function finishVirtueReview() {
                 var today = new Date().toISOString().split('T')[0];
-                var reviews = JSON.parse(localStorage.getItem('virtueReviews') || '{}');
+                var reviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
 
                 // 计算每个领域的总分
                 var areaResults = {};
@@ -5110,8 +5115,8 @@ function initFlagApp(){
                     average: (totalScore / totalMax * 5).toFixed(1)
                 };
 
-                localStorage.setItem('virtueReviews', JSON.stringify(reviews));
-                localStorage.setItem('virtueReviewDate', today);
+                localStorage.setItem('virtue_reviews', JSON.stringify(reviews));
+                localStorage.setItem('virtue_review_date', today);
 
                 // 同步到云端
                 syncVirtueToCloud(today, areaResults, totalScore, totalMax);
@@ -5250,7 +5255,7 @@ function initFlagApp(){
 
             // 显示统计
             window.showVirtueStats = function() {
-                var reviews = JSON.parse(localStorage.getItem('virtueReviews') || '{}');
+                var reviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
                 var dates = Object.keys(reviews).sort().reverse().slice(0, 7);
                 var body = document.getElementById('dailyReviewBody');
 

@@ -2269,6 +2269,17 @@ function initFlagApp(){
 
                         // Initialize animations
                         initAnimations();
+                        
+                        // 检查 URL 参数，如果 show_review=1，自动打开复盘弹窗
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('show_review') === '1') {
+                            console.log('Auto-opening review dialog');
+                            setTimeout(() => {
+                                if (window.showDailyReview) {
+                                    window.showDailyReview();
+                                }
+                            }, 500);
+                        }
                     }, 800);
                     
                 } catch (error) {

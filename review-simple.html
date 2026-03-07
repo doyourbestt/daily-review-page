@@ -946,9 +946,44 @@
                     localStorage.removeItem('test');
                     
                     const localReviews = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
+                    
+                    // 只保留最近30天的数据
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+                    
+                    // 清理旧数据
+                    Object.keys(localReviews).forEach(date => {
+                        if (date < thirtyDaysAgoStr) {
+                            delete localReviews[date];
+                        }
+                    });
+                    
+                    // 添加新数据
                     localReviews[today] = reviewData;
-                    localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
-                    console.log('✅ Saved to LocalStorage');
+                    
+                    // 尝试保存，如果超出配额则进一步清理
+                    try {
+                        localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
+                        console.log('✅ Saved to LocalStorage');
+                    } catch (quotaError) {
+                        console.warn('localStorage quota exceeded, cleaning old data...');
+                        
+                        // 保留最近7天的数据
+                        const sevenDaysAgo = new Date();
+                        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+                        
+                        Object.keys(localReviews).forEach(date => {
+                            if (date < sevenDaysAgoStr && date !== today) {
+                                delete localReviews[date];
+                            }
+                        });
+                        
+                        // 再次尝试保存
+                        localStorage.setItem('virtue_reviews', JSON.stringify(localReviews));
+                        console.log('✅ Saved to LocalStorage (cleaned old data)');
+                    }
                     
                     // 显示成功消息和按钮
                     showToast('✅ 发布成功！');

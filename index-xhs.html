@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>元气复盘局</title>
+    
+    <!-- 小红书风格配色 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --xhs-red: #FF2442;
+            --xhs-red-light: #FFE5EA;
+            --xhs-bg: #FFFFFF;
+            --xhs-bg-secondary: #F8F8F8;
+            --xhs-text: #333333;
+            --xhs-text-secondary: #666666;
+            --xhs-text-light: #999999;
+            --xhs-border: #EEEEEE;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+            background: var(--xhs-bg-secondary);
+            color: var(--xhs-text);
+            padding-bottom: 70px;
+        }
+        
+        /* 顶部导航 */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--xhs-bg);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--xhs-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FF6B35, #FF2442);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .header-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .header-btn-outline {
+            background: var(--xhs-bg);
+            border: 1px solid var(--xhs-border);
+            color: var(--xhs-text);
+        }
+        
+        .header-btn-primary {
+            background: var(--xhs-red);
+            color: white;
+        }
+        
+        /* Tab 导航 */
+        .tabs {
+            display: flex;
+            background: var(--xhs-bg);
+            border-bottom: 1px solid var(--xhs-border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 14px 16px;
+            text-align: center;
+            font-size: 15px;
+            color: var(--xhs-text-secondary);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--xhs-red);
+            border-bottom-color: var(--xhs-red);
+            font-weight: 600;
+        }
+        
+        /* 瀑布流容器 */
+        .waterfall {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        /* 复盘卡片 */
+        .review-card {
+            background: var(--xhs-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            break-inside: avoid;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .review-card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            background: linear-gradient(135deg, #FFE5EA, #FFF5F0);
+        }
+        
+        .review-card-content {
+            padding: 12px;
+        }
+        
+        .review-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .review-card-scores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .score-tag {
+            padding: 3px 8px;
+            background: var(--xhs-bg-secondary);
+            border-radius: 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .review-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .review-card-author {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .author-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--xhs-red-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .author-name {
+            font-size: 12px;
+            color: var(--xhs-text-light);
+        }
+        
+        .review-card-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--xhs-text-light);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--xhs-bg);
+            border-top: 1px solid var(--xhs-border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-text {
+            font-size: 11px;
+            color: var(--xhs-text-light);
+        }
+        
+        .nav-item.active .nav-text {
+            color: var(--xhs-red);
+            font-weight: 600;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 16px;
+            color: var(--xhs-text);
+            margin-bottom: 8px;
+        }
+        
+        .empty-desc {
+            font-size: 14px;
+            color: var(--xhs-text-light);
+            margin-bottom: 20px;
+        }
+        
+        /* 加载状态 */
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--xhs-text-light);
+        }
+        
+        /* 我的复盘页面 */
+        .my-reviews {
+            padding: 20px 10px;
+        }
+        
+        .my-reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .my-reviews-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .my-reviews-stats {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--xhs-red);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--xhs-text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">元气复盘局</div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn header-btn-outline" onclick="showMyReviews()">我的复盘</button>
+            <button class="header-btn header-btn-primary" onclick="startReview()">+ 发布</button>
+        </div>
+    </div>
+    
+    <!-- Tab 导航 -->
+    <div class="tabs">
+        <div class="tab active" data-tab="all">全部动态</div>
+        <div class="tab" data-tab="following">关注</div>
+        <div class="tab" data-tab="hot">热门</div>
+    </div>
+    
+    <!-- 内容区域 -->
+    <div id="contentArea">
+        <!-- 全部动态（默认显示） -->
+        <div class="waterfall" id="allReviews">
+            <!-- 动态加载 -->
+        </div>
+        
+        <!-- 关注 -->
+        <div class="waterfall" id="followingReviews" style="display:none">
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <div class="empty-title">关注功能开发中</div>
+                <div class="empty-desc">敬请期待</div>
+            </div>
+        </div>
+        
+        <!-- 热门 -->
+        <div class="waterfall" id="hotReviews" style="display:none">
+            <div class="empty-state">
+                <div class="empty-icon">🔥</div>
+                <div class="empty-title">热门功能开发中</div>
+                <div class="empty-desc">敬请期待</div>
+            </div>
+        </div>
+        
+        <!-- 我的复盘 -->
+        <div class="my-reviews" id="myReviewsPage" style="display:none">
+            <div class="my-reviews-header">
+                <div>
+                    <div class="my-reviews-title">我的复盘</div>
+                    <div style="font-size:12px;color:#999;margin-top:4px" id="myReviewCount">共 0 条复盘</div>
+                </div>
+                <div class="my-reviews-stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="myTotalDays">0</div>
+                        <div class="stat-label">累计天数</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="myAvgScore">0</div>
+                        <div class="stat-label">平均分</div>
+                    </div>
+                </div>
+            </div>
+            <div class="waterfall" id="myReviewsList">
+                <!-- 动态加载 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">首页</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('discover')">
+            <div class="nav-icon">🔍</div>
+            <div class="nav-text">发现</div>
+        </div>
+        <div class="nav-item" onclick="startReview()">
+            <div class="nav-icon">➕</div>
+            <div class="nav-text">发布</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('message')">
+            <div class="nav-icon">💬</div>
+            <div class="nav-text">消息</div>
+        </div>
+        <div class="nav-item" onclick="showMyReviews()">
+            <div class="nav-icon">👤</div>
+            <div class="nav-text">我的</div>
+        </div>
+    </div>
+    
+    <script>
+        // ==================== 全局变量 ====================
+        let currentTab = 'all';
+        let allReviews = [];
+        let myReviews = [];
+        
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllReviews();
+            loadMyReviews();
+            setupTabs();
+        });
+        
+        // ==================== Tab 切换 ====================
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 切换样式
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 切换内容
+                    currentTab = tab.dataset.tab;
+                    document.getElementById('allReviews').style.display = currentTab === 'all' ? 'grid' : 'none';
+                    document.getElementById('followingReviews').style.display = currentTab === 'following' ? 'grid' : 'none';
+                    document.getElementById('hotReviews').style.display = currentTab === 'hot' ? 'grid' : 'none';
+                });
+            });
+        }
+        
+        // ==================== 加载所有复盘 ====================
+        function loadAllReviews() {
+            const container = document.getElementById('allReviews');
+            
+            // 从 localStorage 读取所有用户的复盘
+            const allData = {};
+            
+            // 读取所有可能的用户数据
+            // 这里简化处理，实际应该从后端获取
+            // 模拟数据：从 localStorage 读取
+            const keys = Object.keys(localStorage).filter(k => k.startsWith('virtue_reviews'));
+            
+            keys.forEach(key => {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data && typeof data === 'object') {
+                        Object.assign(allData, data);
+                    }
+                } catch(e) {}
+            });
+            
+            // 也读取当前用户的复盘
+            const myData = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
+            Object.assign(allData, myData);
+            
+            // 按日期排序（最新在前）
+            const sortedDates = Object.keys(allData).sort().reverse();
+            
+            if (sortedDates.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: span 2;">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-title">还没有人发布复盘</div>
+                        <div class="empty-desc">成为第一个发布的人吧！</div>
+                        <button class="header-btn header-btn-primary" onclick="startReview()">立即发布</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 渲染卡片
+            container.innerHTML = '';
+            sortedDates.forEach(date => {
+                const review = allData[date];
+                if (!review) return;
+                
+                const card = createReviewCard(date, review);
+                container.appendChild(card);
+            });
+        }
+        
+        // ==================== 创建复盘卡片 ====================
+        function createReviewCard(date, review) {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+            
+            // 计算总分
+            const totalScore = review.total_max > 0 
+                ? Math.round((review.total_score / review.total_max) * 100) 
+                : 0;
+            
+            // 获取成就标签
+            const achievements = getAchievements(review);
+            
+            // 格式化日期
+            const dateObj = new Date(date);
+            const dateStr = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+            
+            // 背景颜色（根据总分）
+            const bgColor = getScoreColor(totalScore);
+            
+            card.innerHTML = `
+                <div class="review-card-image" style="background: ${bgColor}; display: flex; align-items: center; justify-content: center;">
+                    <div style="text-align: center; color: white;">
+                        <div style="font-size: 48px; font-weight: 700;">${totalScore}</div>
+                        <div style="font-size: 14px; opacity: 0.9;">分</div>
+                    </div>
+                </div>
+                <div class="review-card-content">
+                    <div class="review-card-title">${dateStr} 的复盘</div>
+                    <div class="review-card-scores">
+                        ${achievements.map(a => `
+                            <span class="score-tag">${a.icon} ${a.text}</span>
+                        `).join('')}
+                    </div>
+                    ${review.thoughts ? `
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.4;">
+                            ${review.thoughts.substring(0, 50)}${review.thoughts.length > 50 ? '...' : ''}
+                        </div>
+                    ` : ''}
+                    <div class="review-card-footer">
+                        <div class="review-card-author">
+                            <div class="author-avatar">😊</div>
+                            <div class="author-name">我</div>
+                        </div>
+                        <div class="review-card-stats">
+                            <span class="stat-item">❤️ 0</span>
+                            <span class="stat-item">💬 0</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            card.onclick = () => showReviewDetail(date, review);
+            
+            return card;
+        }
+        
+        // ==================== 获取成就 ====================
+        function getAchievements(review) {
+            const achievements = [];
+            
+            if (!review.results || !VIRTUE_CONFIG) return achievements;
+            
+            Object.keys(review.results).forEach(areaId => {
+                const areaData = review.results[areaId];
+                const avgScore = parseFloat(areaData.average);
+                const scoreLevel = Math.round(avgScore);
+                
+                if (VIRTUE_CONFIG.achievements && VIRTUE_CONFIG.achievements[areaId]) {
+                    const achievement = VIRTUE_CONFIG.achievements[areaId][scoreLevel];
+                    if (achievement) {
+                        achievements.push(achievement);
+                    }
+                }
+            });
+            
+            return achievements.slice(0, 3); // 最多显示3个
+        }
+        
+        // ==================== 根据分数获取颜色 ====================
+        function getScoreColor(score) {
+            if (score >= 80) return 'linear-gradient(135deg, #FF6B6B, #FF8E8E)';
+            if (score >= 60) return 'linear-gradient(135deg, #4ECDC4, #6FE5D9)';
+            if (score >= 40) return 'linear-gradient(135deg, #95E1D3, #B5F1E5)';
+            return 'linear-gradient(135deg, #DDA0DD, #E8B8E8)';
+        }
+        
+        // ==================== 加载我的复盘 ====================
+        function loadMyReviews() {
+            const container = document.getElementById('myReviewsList');
+            const myData = JSON.parse(localStorage.getItem('virtue_reviews') || '{}');
+            myReviews = Object.keys(myData).sort().reverse();
+            
+            // 更新统计
+            document.getElementById('myReviewCount').textContent = `共 ${myReviews.length} 条复盘`;
+            document.getElementById('myTotalDays').textContent = myReviews.length;
+            
+            // 计算平均分
+            let totalAvg = 0;
+            myReviews.forEach(date => {
+                const review = myData[date];
+                if (review && review.total_max > 0) {
+                    totalAvg += (review.total_score / review.total_max) * 100;
+                }
+            });
+            const avgScore = myReviews.length > 0 ? Math.round(totalAvg / myReviews.length) : 0;
+            document.getElementById('myAvgScore').textContent = avgScore;
+            
+            if (myReviews.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: span 2;">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-title">还没有复盘记录</div>
+                        <div class="empty-desc">开始你的第一次复盘吧！</div>
+                        <button class="header-btn header-btn-primary" onclick="startReview()">立即发布</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            myReviews.forEach(date => {
+                const review = myData[date];
+                if (!review) return;
+                
+                const card = createReviewCard(date, review);
+                container.appendChild(card);
+            });
+        }
+        
+        // ==================== 显示我的复盘页面 ====================
+        function showMyReviews() {
+            document.getElementById('allReviews').style.display = 'none';
+            document.getElementById('followingReviews').style.display = 'none';
+            document.getElementById('hotReviews').style.display = 'none';
+            document.getElementById('myReviewsPage').style.display = 'block';
+            
+            // 更新底部导航
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[4].classList.add('active'); // "我的" tab
+        }
+        
+        // ==================== 开始复盘 ====================
+        function startReview() {
+            window.location.href = 'review-simple.html';
+        }
+        
+        // ==================== 查看复盘详情 ====================
+        function showReviewDetail(date, review) {
+            // 简单的详情展示
+            const totalScore = review.total_max > 0 
+                ? Math.round((review.total_score / review.total_max) * 100) 
+                : 0;
+            
+            const achievements = getAchievements(review);
+            
+            let detailHtml = `
+                <div style="padding: 20px; text-align: center;">
+                    <div style="font-size: 64px; font-weight: 700; color: #FF2442; margin-bottom: 8px;">${totalScore}</div>
+                    <div style="font-size: 16px; color: #666; margin-bottom: 24px;">${date}</div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px;">
+                        ${achievements.map(a => `
+                            <span style="padding: 6px 12px; background: #f5f5f5; border-radius: 20px; font-size: 13px;">
+                                ${a.icon} ${a.text}
+                            </span>
+                        `).join('')}
+                    </div>
+                    
+                    ${review.thoughts ? `
+                        <div style="background: #f9f9f9; padding: 16px; border-radius: 12px; text-align: left; font-size: 14px; line-height: 1.6; color: #333;">
+                            ${review.thoughts}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            alert(detailHtml); // 简化处理，实际应该用弹窗
+        }
+        
+        // ==================== 底部导航切换 ====================
+        function switchTab(tabName) {
+            if (tabName === 'home') {
+                document.getElementById('allReviews').style.display = 'grid';
+                document.getElementById('followingReviews').style.display = 'none';
+                document.getElementById('hotReviews').style.display = 'none';
+                document.getElementById('myReviewsPage').style.display = 'none';
+                
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            }
+        }
+    </script>
+    
+    <!-- 配置 -->
+    <script src="js/virtue-questions.js"></script>
+</body>
+</html>
